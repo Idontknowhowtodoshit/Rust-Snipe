@@ -1,0 +1,486 @@
+{
+ "Warehouse": [
+  "https://content.rustmaps.com/monuments/warehouse/0.jpg",
+  "https://content.rustmaps.com/monuments/warehouse/1.jpg",
+  "https://content.rustmaps.com/monuments/warehouse/2.jpg"
+ ],
+ "Gas Station": [
+  "https://content.rustmaps.com/monuments/gas_station_1/1.jpg",
+  "https://content.rustmaps.com/monuments/gas_station_1/2.jpg",
+  "https://content.rustmaps.com/monuments/gas_station_1/3.jpg"
+ ],
+ "Supermarket": [
+  "https://content.rustmaps.com/monuments/supermarket_1/1.jpg",
+  "https://content.rustmaps.com/monuments/supermarket_1/2.jpg",
+  "https://content.rustmaps.com/monuments/supermarket_1/3.jpg"
+ ],
+ "Lighthouse": [
+  "https://content.rustmaps.com/monuments/lighthouse/0.jpg",
+  "https://content.rustmaps.com/monuments/lighthouse/1.jpg"
+ ],
+ "Satellite Dish": [
+  "https://content.rustmaps.com/monuments/satellite_dish/0.jpg",
+  "https://content.rustmaps.com/monuments/satellite_dish/1.jpg",
+  "https://content.rustmaps.com/monuments/satellite_dish/2.jpg"
+ ],
+ "Sphere Tank": [
+  "https://content.rustmaps.com/monuments/sphere_tank/0.jpg",
+  "https://content.rustmaps.com/monuments/sphere_tank/1.jpg",
+  "https://content.rustmaps.com/monuments/sphere_tank/2.jpg",
+  "https://content.rustmaps.com/monuments/sphere_tank/3.jpg",
+  "https://content.rustmaps.com/monuments/sphere_tank/4.jpg"
+ ],
+ "Small Harbor": [
+  "https://content.rustmaps.com/monuments/harbor_1/1.jpg",
+  "https://content.rustmaps.com/monuments/harbor_1/2.jpg",
+  "https://content.rustmaps.com/monuments/harbor_1/3.jpg",
+  "https://content.rustmaps.com/monuments/harbor_1/4.jpg",
+  "https://content.rustmaps.com/monuments/harbor_1/5.jpg"
+ ],
+ "Large Harbor": [
+  "https://content.rustmaps.com/monuments/harbor_2/1.jpg",
+  "https://content.rustmaps.com/monuments/harbor_2/2.jpg",
+  "https://content.rustmaps.com/monuments/harbor_2/3.jpg",
+  "https://content.rustmaps.com/monuments/harbor_2/4.jpg"
+ ],
+ "Airfield": [
+  "https://content.rustmaps.com/monuments/airfield_1/1.jpg",
+  "https://content.rustmaps.com/monuments/airfield_1/10.jpg",
+  "https://content.rustmaps.com/monuments/airfield_1/2.jpg",
+  "https://content.rustmaps.com/monuments/airfield_1/3.jpg",
+  "https://content.rustmaps.com/monuments/airfield_1/9.jpg"
+ ],
+ "Junkyard": [
+  "https://content.rustmaps.com/monuments/junkyard_1/1.jpg",
+  "https://content.rustmaps.com/monuments/junkyard_1/2.jpg",
+  "https://content.rustmaps.com/monuments/junkyard_1/3.jpg",
+  "https://content.rustmaps.com/monuments/junkyard_1/5.jpg",
+  "https://content.rustmaps.com/monuments/junkyard_1/7.jpg"
+ ],
+ "Military Tunnels": [
+  "https://content.rustmaps.com/monuments/military_tunnel_1/1.jpg",
+  "https://content.rustmaps.com/monuments/military_tunnel_1/14.jpg",
+  "https://content.rustmaps.com/monuments/military_tunnel_1/2.jpg",
+  "https://content.rustmaps.com/monuments/military_tunnel_1/3.jpg",
+  "https://content.rustmaps.com/monuments/military_tunnel_1/4.jpg",
+  "https://content.rustmaps.com/monuments/military_tunnel_1/5.jpg"
+ ],
+ "Powerplant": [
+  "https://content.rustmaps.com/monuments/powerplant_1/1.jpg",
+  "https://content.rustmaps.com/monuments/powerplant_1/2.jpg",
+  "https://content.rustmaps.com/monuments/powerplant_1/3.jpg",
+  "https://content.rustmaps.com/monuments/powerplant_1/4.jpg",
+  "https://content.rustmaps.com/monuments/powerplant_1/5.jpg"
+ ],
+ "Trainyard": [
+  "https://content.rustmaps.com/monuments/trainyard_1/1.jpg",
+  "https://content.rustmaps.com/monuments/trainyard_1/2.jpg",
+  "https://content.rustmaps.com/monuments/trainyard_1/3.jpg",
+  "https://content.rustmaps.com/monuments/trainyard_1/5.jpg",
+  "https://content.rustmaps.com/monuments/trainyard_1/7.jpg"
+ ],
+ "Excavator": [
+  "https://content.rustmaps.com/monuments/excavator_1/1.jpg",
+  "https://content.rustmaps.com/monuments/excavator_1/2.jpg",
+  "https://content.rustmaps.com/monuments/excavator_1/3.jpg",
+  "https://content.rustmaps.com/monuments/excavator_1/7.jpg",
+  "https://content.rustmaps.com/monuments/excavator_1/8.jpg",
+  "https://content.rustmaps.com/monuments/excavator_1/9.jpg"
+ ],
+ "Bandit Town": [
+  "https://content.rustmaps.com/monuments/bandit_town/0.jpg",
+  "https://content.rustmaps.com/monuments/bandit_town/1.jpg",
+  "https://content.rustmaps.com/monuments/bandit_town/2.jpg",
+  "https://content.rustmaps.com/monuments/bandit_town/3.jpg",
+  "https://content.rustmaps.com/monuments/bandit_town/4.jpg",
+  "https://content.rustmaps.com/monuments/bandit_town/5.jpg"
+ ],
+ "Outpost": [
+  "https://content.rustmaps.com/monuments/compound/1.jpg",
+  "https://content.rustmaps.com/monuments/compound/2.jpg",
+  "https://content.rustmaps.com/monuments/compound/3.jpg",
+  "https://content.rustmaps.com/monuments/compound/4.jpg",
+  "https://content.rustmaps.com/monuments/compound/5.jpg",
+  "https://content.rustmaps.com/monuments/compound/6.jpg"
+ ],
+ "Sewer Branch": [
+  "https://content.rustmaps.com/monuments/radtown_small_3/1.jpg",
+  "https://content.rustmaps.com/monuments/radtown_small_3/2.jpg",
+  "https://content.rustmaps.com/monuments/radtown_small_3/3.jpg"
+ ],
+ "Sulfur Quarry": [
+  "https://content.rustmaps.com/monuments/mining_quarry_a/1.jpg",
+  "https://content.rustmaps.com/monuments/mining_quarry_a/2.jpg"
+ ],
+ "Stone Quarry": [
+  "https://content.rustmaps.com/monuments/mining_quarry_b/1.jpg",
+  "https://content.rustmaps.com/monuments/mining_quarry_b/2.jpg"
+ ],
+ "Hqm Quarry": [
+  "https://content.rustmaps.com/monuments/mining_quarry_c/1.jpg",
+  "https://content.rustmaps.com/monuments/mining_quarry_c/2.jpg"
+ ],
+ "Large Oilrig": [
+  "https://content.rustmaps.com/monuments/oilrig_1/1.jpg",
+  "https://content.rustmaps.com/monuments/oilrig_1/2.jpg",
+  "https://content.rustmaps.com/monuments/oilrig_1/3.jpg",
+  "https://content.rustmaps.com/monuments/oilrig_1/4.jpg"
+ ],
+ "Small Oilrig": [
+  "https://content.rustmaps.com/monuments/oilrig_2/1.jpg",
+  "https://content.rustmaps.com/monuments/oilrig_2/2.jpg",
+  "https://content.rustmaps.com/monuments/oilrig_2/3.jpg",
+  "https://content.rustmaps.com/monuments/oilrig_2/4.jpg"
+ ],
+ "Fishing Village A": [
+  "https://content.rustmaps.com/monuments/fishing_village_a/0.jpg",
+  "https://content.rustmaps.com/monuments/fishing_village_a/1.jpg",
+  "https://content.rustmaps.com/monuments/fishing_village_a/2.jpg",
+  "https://content.rustmaps.com/monuments/fishing_village_a/3.jpg",
+  "https://content.rustmaps.com/monuments/fishing_village_a/4.jpg"
+ ],
+ "Fishing Village B": [
+  "https://content.rustmaps.com/monuments/fishing_village_b/0.jpg",
+  "https://content.rustmaps.com/monuments/fishing_village_b/1.jpg",
+  "https://content.rustmaps.com/monuments/fishing_village_b/2.jpg",
+  "https://content.rustmaps.com/monuments/fishing_village_b/3.jpg"
+ ],
+ "Fishing Village C": [
+  "https://content.rustmaps.com/monuments/fishing_village_c/0.jpg",
+  "https://content.rustmaps.com/monuments/fishing_village_c/1.jpg",
+  "https://content.rustmaps.com/monuments/fishing_village_c/2.jpg",
+  "https://content.rustmaps.com/monuments/fishing_village_c/3.jpg"
+ ],
+ "Water Well A": [
+  "https://content.rustmaps.com/monuments/water_well_a/0.jpg",
+  "https://content.rustmaps.com/monuments/water_well_a/1.jpg",
+  "https://content.rustmaps.com/monuments/water_well_a/2.jpg",
+  "https://content.rustmaps.com/monuments/water_well_a/3.jpg",
+  "https://content.rustmaps.com/monuments/water_well_a/4.jpg"
+ ],
+ "Water Well B": [
+  "https://content.rustmaps.com/monuments/water_well_b/0.jpg",
+  "https://content.rustmaps.com/monuments/water_well_b/1.jpg",
+  "https://content.rustmaps.com/monuments/water_well_b/2.jpg"
+ ],
+ "Water Well C": [
+  "https://content.rustmaps.com/monuments/water_well_c/0.jpg",
+  "https://content.rustmaps.com/monuments/water_well_c/1.jpg",
+  "https://content.rustmaps.com/monuments/water_well_c/2.jpg"
+ ],
+ "Water Well D": [
+  "https://content.rustmaps.com/monuments/water_well_d/0.jpg",
+  "https://content.rustmaps.com/monuments/water_well_d/1.jpg",
+  "https://content.rustmaps.com/monuments/water_well_d/2.jpg"
+ ],
+ "Water Well E": [
+  "https://content.rustmaps.com/monuments/water_well_e/0.jpg",
+  "https://content.rustmaps.com/monuments/water_well_e/1.jpg"
+ ],
+ "Swamp A": [
+  "https://content.rustmaps.com/monuments/swamp_a/0.jpg",
+  "https://content.rustmaps.com/monuments/swamp_a/1.jpg",
+  "https://content.rustmaps.com/monuments/swamp_a/2.jpg",
+  "https://content.rustmaps.com/monuments/swamp_a/3.jpg",
+  "https://content.rustmaps.com/monuments/swamp_a/4.jpg"
+ ],
+ "Swamp B": [
+  "https://content.rustmaps.com/monuments/swamp_b/0.jpg",
+  "https://content.rustmaps.com/monuments/swamp_b/1.jpg",
+  "https://content.rustmaps.com/monuments/swamp_b/2.jpg",
+  "https://content.rustmaps.com/monuments/swamp_b/3.jpg"
+ ],
+ "Swamp C": [
+  "https://content.rustmaps.com/monuments/swamp_c/0.jpg",
+  "https://content.rustmaps.com/monuments/swamp_c/1.jpg",
+  "https://content.rustmaps.com/monuments/swamp_c/2.jpg",
+  "https://content.rustmaps.com/monuments/swamp_c/3.jpg",
+  "https://content.rustmaps.com/monuments/swamp_c/4.jpg"
+ ],
+ "Ice Lake 1": [
+  "https://content.rustmaps.com/monuments/ice_lake_1/0.jpg",
+  "https://content.rustmaps.com/monuments/ice_lake_1/1.jpg",
+  "https://content.rustmaps.com/monuments/ice_lake_1/2.jpg"
+ ],
+ "Ice Lake 2": [
+  "https://content.rustmaps.com/monuments/ice_lake_2/0.jpg",
+  "https://content.rustmaps.com/monuments/ice_lake_2/1.jpg",
+  "https://content.rustmaps.com/monuments/ice_lake_2/2.jpg"
+ ],
+ "Ice Lake 3": [
+  "https://content.rustmaps.com/monuments/ice_lake_3/0.jpg"
+ ],
+ "Ice Lake 4": [
+  "https://content.rustmaps.com/monuments/ice_lake_4/0.jpg",
+  "https://content.rustmaps.com/monuments/ice_lake_4/1.jpg",
+  "https://content.rustmaps.com/monuments/ice_lake_4/2.jpg"
+ ],
+ "Cave Large Hard": [
+  "https://content.rustmaps.com/monuments/cave_large_hard/0.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_hard/1.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_hard/2.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_hard/3.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_hard/4.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_hard/5.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_hard/6.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_hard/7.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_hard/8.jpg"
+ ],
+ "Cave Large Medium": [
+  "https://content.rustmaps.com/monuments/cave_large_medium/0.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_medium/1.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_medium/2.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_medium/3.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_medium/4.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_medium/5.png",
+  "https://content.rustmaps.com/monuments/cave_large_medium/6.jpg"
+ ],
+ "Cave Large Sewers Hard": [
+  "https://content.rustmaps.com/monuments/cave_large_sewers_hard/0.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_sewers_hard/1.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_sewers_hard/2.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_sewers_hard/3.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_sewers_hard/4.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_sewers_hard/5.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_sewers_hard/6.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_sewers_hard/7.jpg",
+  "https://content.rustmaps.com/monuments/cave_large_sewers_hard/8.jpg"
+ ],
+ "Cave Medium Easy": [
+  "https://content.rustmaps.com/monuments/cave_medium_easy/0.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_easy/1.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_easy/2.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_easy/3.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_easy/4.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_easy/5.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_easy/5.png",
+  "https://content.rustmaps.com/monuments/cave_medium_easy/6.png"
+ ],
+ "Cave Medium Hard": [
+  "https://content.rustmaps.com/monuments/cave_medium_hard/1.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_hard/10.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_hard/2.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_hard/3.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_hard/4.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_hard/5.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_hard/6.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_hard/7.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_hard/8.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_hard/9.png"
+ ],
+ "Cave Medium Medium": [
+  "https://content.rustmaps.com/monuments/cave_medium_medium/0.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_medium/1.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_medium/10.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_medium/11.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_medium/12.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_medium/2.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_medium/3.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_medium/4.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_medium/5.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_medium/6.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_medium/7.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_medium/8.jpg",
+  "https://content.rustmaps.com/monuments/cave_medium_medium/9.jpg"
+ ],
+ "Cave Small Easy": [
+  "https://content.rustmaps.com/monuments/cave_small_easy/0.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_easy/1.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_easy/2.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_easy/3.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_easy/4.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_easy/5.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_easy/6.jpg"
+ ],
+ "Cave Small Hard": [
+  "https://content.rustmaps.com/monuments/cave_small_hard/0.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_hard/1.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_hard/2.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_hard/3.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_hard/4.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_hard/5.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_hard/6.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_hard/7.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_hard/8.jpg"
+ ],
+ "Cave Small Medium": [
+  "https://content.rustmaps.com/monuments/cave_small_medium/0.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_medium/1.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_medium/2.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_medium/3.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_medium/4.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_medium/5.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_medium/6.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_medium/7.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_medium/8.jpg",
+  "https://content.rustmaps.com/monuments/cave_small_medium/9.jpg"
+ ],
+ "Powerline A": [
+  "https://content.rustmaps.com/monuments/powerline_a/0.jpg",
+  "https://content.rustmaps.com/monuments/powerline_a/1.jpg"
+ ],
+ "Powerline B": [
+  "https://content.rustmaps.com/monuments/powerline_b/0.jpg",
+  "https://content.rustmaps.com/monuments/powerline_b/1.jpg"
+ ],
+ "Powerline C": [
+  "https://content.rustmaps.com/monuments/powerline_c/0.jpg",
+  "https://content.rustmaps.com/monuments/powerline_c/1.jpg"
+ ],
+ "Powerline D": [
+  "https://content.rustmaps.com/monuments/powerline_d/0.jpg"
+ ],
+ "Power Substation Small 1": [
+  "https://content.rustmaps.com/monuments/power_sub_small_1/1.jpg"
+ ],
+ "Power Substation Small 2": [
+  "https://content.rustmaps.com/monuments/power_sub_small_2/1.jpg"
+ ],
+ "Power Substation Big 1": [
+  "https://content.rustmaps.com/monuments/power_sub_big_1/1.jpg",
+  "https://content.rustmaps.com/monuments/power_sub_big_1/2.jpg"
+ ],
+ "Power Substation Big 2": [
+  "https://content.rustmaps.com/monuments/power_sub_big_2/1.jpg"
+ ],
+ "Ranch": [
+  "https://content.rustmaps.com/monuments/stables_a/0.jpg",
+  "https://content.rustmaps.com/monuments/stables_a/1.jpg",
+  "https://content.rustmaps.com/monuments/stables_a/2.jpg",
+  "https://content.rustmaps.com/monuments/stables_a/3.jpg",
+  "https://content.rustmaps.com/monuments/stables_a/4.jpg"
+ ],
+ "Large Barn": [
+  "https://content.rustmaps.com/monuments/stables_b/0.jpg",
+  "https://content.rustmaps.com/monuments/stables_b/1.jpg",
+  "https://content.rustmaps.com/monuments/stables_b/2.jpg",
+  "https://content.rustmaps.com/monuments/stables_b/3.jpg",
+  "https://content.rustmaps.com/monuments/stables_b/4.jpg",
+  "https://content.rustmaps.com/monuments/stables_b/5.jpg"
+ ],
+ "Tunnel Entrance": [
+  "https://content.rustmaps.com/monuments/entrance_bunker_d/1.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_d/2.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_d/3.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_d/4.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_d/5.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_b/1.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_b/2.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_b/3.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_b/4.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_b/5.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_c/1.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_c/2.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_c/3.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_c/4.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_c/5.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_a/1.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_a/2.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_a/3.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_a/4.jpg",
+  "https://content.rustmaps.com/monuments/entrance_bunker_a/5.jpg"
+ ],
+ "Iceberg 1": [
+  "https://content.rustmaps.com/monuments/iceberg_1/0.jpg",
+  "https://content.rustmaps.com/monuments/iceberg_1/1.jpg",
+  "https://content.rustmaps.com/monuments/iceberg_1/2.jpg",
+  "https://content.rustmaps.com/monuments/iceberg_1/3.jpg"
+ ],
+ "Iceberg 2": [
+  "https://content.rustmaps.com/monuments/iceberg_2/0.jpg",
+  "https://content.rustmaps.com/monuments/iceberg_2/1.jpg",
+  "https://content.rustmaps.com/monuments/iceberg_2/2.jpg",
+  "https://content.rustmaps.com/monuments/iceberg_2/3.jpg",
+  "https://content.rustmaps.com/monuments/iceberg_2/4.jpg"
+ ],
+ "Iceberg 3": [
+  "https://content.rustmaps.com/monuments/iceberg_3/0.jpg"
+ ],
+ "Iceberg 4": [
+  "https://content.rustmaps.com/monuments/iceberg_4/0.jpg",
+  "https://content.rustmaps.com/monuments/iceberg_4/1.jpg",
+  "https://content.rustmaps.com/monuments/iceberg_4/2.jpg",
+  "https://content.rustmaps.com/monuments/iceberg_4/3.jpg",
+  "https://content.rustmaps.com/monuments/iceberg_4/4.jpg"
+ ],
+ "Iceberg 5": [
+  "https://content.rustmaps.com/monuments/iceberg_5/0.jpg",
+  "https://content.rustmaps.com/monuments/iceberg_5/1.jpg",
+  "https://content.rustmaps.com/monuments/iceberg_5/2.jpg",
+  "https://content.rustmaps.com/monuments/iceberg_5/3.jpg",
+  "https://content.rustmaps.com/monuments/iceberg_5/4.jpg"
+ ],
+ "Underwater Lab C": [
+  "https://content.rustmaps.com/monuments/underwater_lab_c/1.jpg",
+  "https://content.rustmaps.com/monuments/underwater_lab_c/2.jpg",
+  "https://content.rustmaps.com/monuments/underwater_lab_c/3.jpg",
+  "https://content.rustmaps.com/monuments/underwater_lab_c/4.jpg",
+  "https://content.rustmaps.com/monuments/underwater_lab_c/5.jpg",
+  "https://content.rustmaps.com/monuments/underwater_lab_c/6.jpg"
+ ],
+ "Military Base A": [
+  "https://content.rustmaps.com/monuments/desert_military_base_a/1.jpg",
+  "https://content.rustmaps.com/monuments/desert_military_base_a/3.jpg",
+  "https://content.rustmaps.com/monuments/desert_military_base_a/4.jpg",
+  "https://content.rustmaps.com/monuments/desert_military_base_a/5.jpg"
+ ],
+ "Nuclear Missile Silo": [
+  "https://content.rustmaps.com/monuments/nuclear_missile_silo/1.jpg",
+  "https://content.rustmaps.com/monuments/nuclear_missile_silo/2.jpg",
+  "https://content.rustmaps.com/monuments/nuclear_missile_silo/3.jpg",
+  "https://content.rustmaps.com/monuments/nuclear_missile_silo/4.jpg",
+  "https://content.rustmaps.com/monuments/nuclear_missile_silo/5.jpg"
+ ],
+ "Ferry Terminal": [
+  "https://content.rustmaps.com/monuments/ferry_terminal_1/1.jpg",
+  "https://content.rustmaps.com/monuments/ferry_terminal_1/2.jpg",
+  "https://content.rustmaps.com/monuments/ferry_terminal_1/3.jpg"
+ ],
+ "Lake A": [
+  "https://content.rustmaps.com/monuments/ue_lake_a/1.jpg",
+  "https://content.rustmaps.com/monuments/ue_lake_a/2.jpg"
+ ],
+ "Lake B": [
+  "https://content.rustmaps.com/monuments/ue_lake_b/1.jpg",
+  "https://content.rustmaps.com/monuments/ue_lake_b/2.jpg"
+ ],
+ "Canyon C": [
+  "https://content.rustmaps.com/monuments/ue_canyon_c/1.jpg"
+ ],
+ "Oasis A": [
+  "https://content.rustmaps.com/monuments/ue_oasis_a/1.jpg",
+  "https://content.rustmaps.com/monuments/ue_oasis_a/2.jpg"
+ ],
+ "Oasis C": [
+  "https://content.rustmaps.com/monuments/ue_oasis_c/1.jpg",
+  "https://content.rustmaps.com/monuments/ue_oasis_c/2.jpg"
+ ],
+ "Radtown": [
+  "https://content.rustmaps.com/monuments/radtown_1/1.jpg",
+  "https://content.rustmaps.com/monuments/radtown_1/2.jpg",
+  "https://content.rustmaps.com/monuments/radtown_1/3.jpg",
+  "https://content.rustmaps.com/monuments/radtown_1/4.jpg"
+ ],
+ "Large God Rock": [
+  "https://content.rustmaps.com/monuments/rock_formation_a/1.jpg",
+  "https://content.rustmaps.com/monuments/rock_formation_a/2.jpg",
+  "https://content.rustmaps.com/monuments/rock_formation_a/3.jpg"
+ ],
+ "Medium God Rock": [
+  "https://content.rustmaps.com/monuments/rock_formation_e/1.jpg",
+  "https://content.rustmaps.com/monuments/rock_formation_e/2.jpg"
+ ],
+ "Tiny God Rock": [
+  "https://content.rustmaps.com/monuments/rock_formation_f/1.jpg",
+  "https://content.rustmaps.com/monuments/rock_formation_f/2.jpg",
+  "https://content.rustmaps.com/monuments/rock_formation_f/3.jpg"
+ ],
+ "3 Wall Rock": [
+  "https://content.rustmaps.com/monuments/rock_formation_d/1.jpg",
+  "https://content.rustmaps.com/monuments/rock_formation_d/2.jpg",
+  "https://content.rustmaps.com/monuments/rock_formation_d/3.jpg"
+ ],
+ "Anvil Rock": [
+  "https://content.rustmaps.com/monuments/rock_formation_b/1.jpg"
+ ]
+}

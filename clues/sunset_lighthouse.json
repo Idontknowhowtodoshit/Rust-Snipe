@@ -1,0 +1,11 @@
+{
+  "_note": "Sunset screenshot: heading ~348. Lighthouse at ~25 deg (right), Ferry Terminal buildings at ~335 deg (left), ocean on the horizon N, temperate grass/broadleaf trees.",
+  "at": "Lighthouse",
+  "biome": ["temperate"],
+  "heading": 348,
+  "hfov": 107,
+  "landmarks": [
+    {"type": "Ferry Terminal", "bearing": 280, "tolerance": 40, "max_dist": 1500},
+    {"type": "ocean", "bearing": 0, "tolerance": 45, "max_dist": 800}
+  ]
+}

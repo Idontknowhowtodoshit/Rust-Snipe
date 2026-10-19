@@ -1,0 +1,20 @@
+# secrets
+.env
+
+# downloaded / generated data (rebuilt automatically on first start)
+maps/
+assets/
+result.png
+
+# python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# os / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.claude/

@@ -1,0 +1,11 @@
+{
+  "_note": "Screenshot: on a tower next to a Supermarket, looking ~332 (NNW). Excavator arms on the right edge, big lattice power pylons close on the left, green grass with palms/sand in the distance.",
+  "at": "Supermarket",
+  "biome": ["temperate"],
+  "heading": 332,
+  "hfov": 107,
+  "landmarks": [
+    {"type": "Excavator", "bearing": 15, "tolerance": 20, "max_dist": 1500},
+    {"type": "Powerline", "bearing": 300, "tolerance": 35, "max_dist": 300}
+  ]
+}

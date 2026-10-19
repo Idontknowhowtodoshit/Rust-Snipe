@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rust-Snipe</title>
+<style>
+  :root {
+    --bg: #14110f; --panel: #1d1916; --panel-2: #26211d; --panel-3: #2f2924; --line: #3a322c;
+    --text: #ece6df; --muted: #a39788; --accent: #cd412a; --accent-2: #e8643f;
+    --good: #6fbf5a; --warn: #d9a43a; --bad: #d0573f; --sea: #3d7fb3;
+    --radius: 8px;
+    --b-snow: #e8eef0; --b-tundra: #9aa4b8; --b-arid: #d9b45a; --b-temperate: #6aa84f; --b-jungle: #2f7a3a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { display: flex; align-items: center; gap: 14px; padding: 10px 18px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 18px; letter-spacing: .5px; }
+  header h1 span { color: var(--accent-2); }
+  header .stats { color: var(--muted); font-size: 13px; }
+  header .spacer { flex: 1; }
+  main { display: grid; grid-template-columns: 430px 1fr; min-height: calc(100vh - 53px); }
+  @media (max-width: 960px) { main { grid-template-columns: 1fr; } }
+  form { padding: 14px 16px 40px; border-right: 1px solid var(--line); background: var(--panel); }
+  section { margin-bottom: 20px; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin: 0 0 8px; font-weight: 600; }
+  h2 .lbl { text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: 6px; }
+  label.f { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 4px; }
+  .lbl { font-size: 12px; color: var(--muted); }
+  input, select, button { font: inherit; color: var(--text); }
+  input[type=text], input[type=number], select {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 5px 7px; min-width: 0; }
+  input[type=number] { width: 62px; }
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .w100 { width: 100%; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 1px solid var(--line); background: var(--panel-2); border-radius: 999px; padding: 3px 10px 3px 7px;
+          cursor: pointer; user-select: none; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+  .chip i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .chip.in { border-color: var(--good); background: #1f3319; }
+  .chip.out { border-color: var(--bad); background: #3a1a14; text-decoration: line-through; }
+  .item { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px; margin-bottom: 8px; }
+  .item.absent { border-color: #5a2c24; }
+  .item .head { display: flex; align-items: center; gap: 8px; }
+  .item .head .name { flex: 1; min-width: 0; }
+  .line { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .pick { display: flex; align-items: center; gap: 8px; background: var(--panel-3); border: 1px solid var(--line); border-radius: 6px;
+          padding: 3px 8px 3px 3px; cursor: pointer; width: 100%; text-align: left; min-height: 40px; }
+  .pick:hover { border-color: var(--muted); }
+  .pick img, .pick .ph { width: 34px; height: 34px; border-radius: 4px; object-fit: cover; background: var(--panel); flex: none; }
+  .pick .ph { display: grid; place-items: center; color: var(--muted); font-size: 16px; }
+  .pick .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .x { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 20px; line-height: 1; padding: 0 4px; }
+  .x:hover { color: var(--accent-2); }
+  .add { background: none; border: 1px dashed var(--line); color: var(--muted); border-radius: 6px; padding: 6px 10px; cursor: pointer; width: 100%; }
+  .add:hover { color: var(--text); border-color: var(--muted); }
+  .go { width: 100%; background: var(--accent); border: 0; border-radius: 6px; padding: 10px; font-weight: 600; cursor: pointer; }
+  .go:hover { background: var(--accent-2); }
+  .go:disabled { opacity: .6; cursor: wait; }
+  .btn { background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 13px; }
+  .btn:hover { border-color: var(--muted); }
+  details { border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; }
+  details summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+  .hint { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .grid3 input { width: 100%; }
+  .tunnel { color: var(--warn); font-size: 11px; border: 1px solid #5c4720; border-radius: 4px; padding: 0 5px; white-space: nowrap; }
+
+  /* sketch board */
+  #board { width: 100%; aspect-ratio: 1; background: #171411; border: 1px solid var(--line); border-radius: var(--radius); touch-action: none; display: block; user-select: none; }
+  #board .tok { cursor: grab; }
+  #board .tok[data-kind=at] { cursor: default; }
+  #board .rot { cursor: crosshair; }
+  #board text { font-size: 11px; fill: var(--muted); pointer-events: none; }
+  #board .lab { fill: var(--text); paint-order: stroke; stroke: #000; stroke-width: 3px; }
+
+  .out { display: grid; grid-template-columns: minmax(300px, 420px) 1fr; min-width: 0; }
+  @media (max-width: 1300px) { .out { grid-template-columns: 1fr; } }
+  #results { padding: 14px; overflow: auto; max-height: calc(100vh - 53px); }
+  @media (max-width: 1300px) { #results { max-height: none; } }
+  #summary { color: var(--muted); margin: 0 0 10px; font-size: 13px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 9px 11px; margin-bottom: 8px; cursor: pointer; }
+  .card:hover { border-color: var(--muted); }
+  .card.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+  .card .top { display: flex; align-items: center; gap: 10px; }
+  .score { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 38px; }
+  .bar { flex: 1; height: 5px; background: var(--panel-2); border-radius: 3px; overflow: hidden; }
+  .bar b { display: block; height: 100%; }
+  .srv { font-weight: 600; margin: 5px 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .meta { color: var(--muted); font-size: 12.5px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .tag { font-size: 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; }
+  .tag.miss { color: var(--bad); border-color: #5a2c24; }
+  .tag.hit { color: var(--bad); border-color: #5a2c24; background: #2a1511; }
+  .mix { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin-top: 6px; }
+
+  #preview { padding: 14px; border-left: 1px solid var(--line); min-width: 0; }
+  @media (max-width: 1300px) { #preview { border-left: 0; border-top: 1px solid var(--line); } }
+  #preview .empty { color: var(--muted); padding: 40px 0; text-align: center; }
+  #preview h3 { margin: 0 0 4px; font-size: 16px; }
+  #preview .servers { margin: 8px 0 10px; }
+  #preview .servers div { display: flex; align-items: center; gap: 8px; padding: 3px 0; flex-wrap: wrap; }
+  #preview a { color: var(--accent-2); }
+  .mapbox { position: relative; max-width: 900px; overflow: hidden; border-radius: var(--radius); border: 1px solid var(--line); background: #0f1a22; }
+  .mapbox img { width: 100%; aspect-ratio: 1; display: block; cursor: grab; user-select: none; -webkit-user-drag: none; touch-action: none; }
+  .mapbox img:active { cursor: grabbing; }
+  .mapbox .tools { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; }
+  .mapbox .tools button { background: rgba(20,17,15,.85); border: 1px solid var(--line); border-radius: 6px; color: var(--text);
+                          min-width: 32px; height: 30px; cursor: pointer; font-size: 14px; padding: 0 8px; }
+  .mapbox .tools button:hover { border-color: var(--muted); }
+  .mapbox .zoominfo { position: absolute; bottom: 8px; left: 8px; background: rgba(20,17,15,.85); border-radius: 4px; padding: 1px 6px; font-size: 12px; color: var(--muted); }
+  code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+  .err { color: #ff8f7a; }
+
+  /* picker modal */
+  dialog { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 0;
+           width: min(1000px, 96vw); max-height: 90vh; }
+  dialog::backdrop { background: rgba(0,0,0,.6); }
+  .dlg-head { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .dlg-head input { flex: 1; }
+  .dlg-body { padding: 4px 14px 16px; overflow: auto; max-height: calc(90vh - 62px); }
+  .dlg-body h4 { margin: 14px 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+  .tile { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; cursor: pointer; text-align: left; padding: 0; }
+  .tile:hover { border-color: var(--accent); }
+  .tile .img { width: 100%; aspect-ratio: 4/3; background: var(--panel-3) center/cover no-repeat; position: relative; }
+  .tile .img .ic { position: absolute; left: 6px; bottom: 6px; width: 26px; height: 26px; background: rgba(0,0,0,.55); border-radius: 50%; padding: 3px; }
+  .tile .img .more { position: absolute; right: 6px; bottom: 6px; background: rgba(0,0,0,.65); border-radius: 4px; padding: 0 5px; font-size: 11px; }
+  .tile .nm { padding: 5px 8px 6px; font-size: 13px; line-height: 1.25; }
+  .tile .nm small { color: var(--muted); display: block; font-size: 11px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Rust<span>Snipe</span></h1>
+  <div class="stats" id="stats">loading…</div>
+  <div class="spacer"></div>
+  <span class="stats" id="syncInfo" title=""></span>
+  <button class="btn" id="syncBtn" type="button" title="re-check every tracked server: download maps of servers that wiped, delete maps nobody runs any more">Sync now</button>
+  <button class="btn" id="ex1" type="button">Example: Supermarket</button>
+  <button class="btn" id="ex2" type="button">Example: Lighthouse</button>
+  <button class="btn" id="reset" type="button">Clear</button>
+</header>
+<main>
+  <form id="form" autocomplete="off">
+    <section>
+      <h2>You are at / next to</h2>
+      <div id="atBox"></div>
+      <label class="f">Biome around it: click once = must be, twice = must NOT be</label>
+      <div class="chips" id="biomes"></div>
+    </section>
+
+    <section>
+      <h2>Sketch<span class="lbl">drag things around · drag an orange dot to turn a monument</span></h2>
+      <svg id="board" viewBox="-200 -200 400 400"></svg>
+      <p class="hint">One grid cell = one map square (~146 m), north is up. The orange dot marks the side where that monument's own train-tunnel entrance is.</p>
+    </section>
+
+    <section>
+      <h2>Nearby</h2>
+      <div id="lms"></div>
+      <button class="add" type="button" id="addLm">+ add something nearby</button>
+    </section>
+
+    <section>
+      <h2>Not nearby</h2>
+      <div id="abs"></div>
+      <button class="add" type="button" id="addAbs">+ add something that is NOT close</button>
+    </section>
+
+    <section>
+      <details id="viewBox">
+        <summary>From a screenshot: compass bearings (optional)</summary>
+        <div class="grid3">
+          <div><label class="f">Heading</label><input type="number" id="heading" min="0" max="359" placeholder="348"></div>
+          <div><label class="f">To monument</label><input type="number" id="atB" min="0" max="359" placeholder="25"></div>
+          <div><label class="f">To 1st nearby</label><input type="number" id="lmB" min="0" max="359" placeholder="335"></div>
+        </div>
+        <label class="f">Both were within (squares) of you</label>
+        <input type="number" id="maxD" min="0.5" step="0.5" placeholder="e.g. 4" style="width:100%">
+        <p class="hint">Read these off the compass bar. With both bearings, each result shows where you stood.</p>
+      </details>
+    </section>
+
+    <section>
+      <h2>Servers</h2>
+      <input type="text" id="org" class="w100" placeholder="server name contains… (blank = all)">
+    </section>
+
+    <button class="go" id="go" type="submit">Search all maps</button>
+  </form>
+
+  <div class="out">
+    <div id="results"><p id="summary">Describe what you see and press search.</p><div id="list"></div></div>
+    <div id="preview"><div class="empty">Select a result to see it on the map.</div></div>
+  </div>
+</main>
+
+<dialog id="picker">
+  <div class="dlg-head">
+    <input type="text" id="pickQ" placeholder="filter… (e.g. rock, quarry, power)">
+    <button class="btn" type="button" id="pickClose">Close</button>
+  </div>
+  <div class="dlg-body" id="pickBody"></div>
+</dialog>
+
+<script>
+const SQ = 146.3;                       // one map grid square in metres
+const COMPASS = [["N",0],["NE",45],["E",90],["SE",135],["S",180],["SW",225],["W",270],["NW",315]];
+const BCOL = {snow:"var(--b-snow)", tundra:"var(--b-tundra)", arid:"var(--b-arid)", temperate:"var(--b-temperate)", jungle:"var(--b-jungle)"};
+const OCEAN = { name: "ocean", label: "Ocean / coast", cat: "Water, ice & terrain", maps: 0 };
+let META = null, TYPES = {}, LAST = null, SEL = null, VIEW = null, uid = 1;
+let ST = blank();
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = b => ((b % 360) + 360) % 360;
+const dirName = b => b == null ? "" : COMPASS[Math.round(norm(b) / 45) % 8][0];
+const sq = m => Math.round(m / SQ * 2) / 2;
+
+function blank() {
+  return { at: { type: "", facing: null }, biomeIn: [], biomeOut: [], lms: [], abs: [],
+           view: { heading: null, atB: null, lmB: null, maxD: null }, org: "", includeCustom: false };
+}
+const newLm = (o = {}) => ({ id: uid++, type: "", bearing: null, tol: 30, dist: 5, biome: "", facing: null, ...o });
+const newAbs = (o = {}) => ({ id: uid++, type: "", bearing: null, tol: 45, dist: 7, ...o });
+const typeInfo = t => t === "ocean" ? OCEAN : (TYPES[t] || TYPES[t?.split("|")[0]] || null);
+const isTunnel = t => !!typeInfo(t)?.tunnel;
+const imgOf = t => { const i = typeInfo(t); return i ? (i.thumb || i.photo || i.icon) : null; };
+
+/* ---------------------------------------------------------------- init / persistence */
+async function loadMeta() {
+  META = await (await fetch("/api/meta")).json();
+  TYPES = {}; META.types.forEach(t => TYPES[t.name] = t);
+  $("#stats").textContent = META.maps ? `${META.classic_maps} maps · ${META.classic_servers} servers`
+                                       : "first start: downloading server maps…";
+  if (!META.maps && !LAST) $("#summary").innerHTML = `<b>First start:</b> the current map of every popular server is being downloaded
+    from rustmaps (about 10 minutes, progress at the top right). Search works as soon as that's done; after that it only
+    downloads maps of servers that wiped.`;
+  else if (!LAST) $("#summary").textContent = "Describe what you see and press search.";
+}
+/* ---------------------------------------------------------------- wipe sync */
+const ago = t => { const h = (Date.now() / 1000 - t) / 3600; return h < 1 ? `${Math.max(1, Math.round(h * 60))} min ago` : h < 48 ? `${Math.round(h)} h ago` : `${Math.round(h / 24)} days ago`; };
+let syncWasRunning = false;
+async function pollSync() {
+  let st; try { st = await (await fetch("/api/sync")).json(); } catch (e) { return setTimeout(pollSync, 10000); }
+  const info = $("#syncInfo"), btn = $("#syncBtn");
+  btn.disabled = st.running; btn.textContent = st.running ? "Syncing…" : "Sync now";
+  if (st.running) {
+    info.textContent = st.log.length ? st.log[st.log.length - 1].slice(0, 70) : "checking servers…";
+  } else if (st.last) {
+    const l = st.last, w = st.wiped_24h || [], wait = (l.failed || []).length;
+    info.textContent = `synced ${ago(l.time)} · ${w.length} servers wiped in 24 h` + (wait ? ` · ${wait} new maps still rendering on rustmaps` : "");
+    info.title = w.length ? "Wiped in the last 24 h (hover list):\n" + w.map(x => `${String(x.at || "").slice(5, 16).replace("T", " ")}  ${x.name}`).join("\n") : "";
+  } else info.textContent = "never synced";
+  if (syncWasRunning && !st.running) await loadMeta();   // new maps are searchable now
+  syncWasRunning = st.running;
+  setTimeout(pollSync, st.running ? 2000 : 60000);
+}
+$("#syncBtn").onclick = async () => { await fetch("/api/sync", { method: "POST" }); syncWasRunning = true; setTimeout(pollSync, 500); };
+
+async function init() {
+  await loadMeta();
+  pollSync();
+  try {
+    const s = JSON.parse(localStorage.getItem("rustloc2"));
+    if (s && s.at) { ST = { ...blank(), ...s }; uid = 1 + Math.max(0, ...ST.lms.map(l => l.id), ...ST.abs.map(l => l.id)); }
+  } catch (e) {}
+  if (!ST.lms.length) ST.lms.push(newLm());
+  renderAll();
+}
+function save() {
+  const strip = o => Object.fromEntries(Object.entries(o).filter(([k]) => !k.startsWith("_")));
+  try { localStorage.setItem("rustloc2", JSON.stringify({ ...ST, lms: ST.lms.map(strip), abs: ST.abs.map(strip) })); } catch (e) {}
+}
+function changed() { save(); drawBoard(); }
+
+/* ---------------------------------------------------------------- small widgets */
+function pickBtn(type, onPick) {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "pick"; b.title = "click to choose from pictures";
+  const info = typeInfo(type), src = imgOf(type);
+  b.innerHTML = (type === "ocean" ? `<span class="ph" style="color:var(--sea)">≈</span>` :
+    src ? `<img src="${esc(src)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ph',textContent:'?'}))">` : `<span class="ph">?</span>`) +
+    `<span class="nm">${type ? esc(info?.label || type) : "<span style='color:var(--muted)'>choose…</span>"}</span>` +
+    (isTunnel(type) ? `<span class="tunnel" title="this monument has its own train-tunnel entrance, so its rotation can be matched">rotation</span>` : "");
+  b.onclick = () => openPicker(onPick);
+  return b;
+}
+function dirCtl(value, onChange, anyLabel = "any") {
+  // compass select + free degrees; value null = any direction
+  const w = document.createElement("span");
+  w.style.cssText = "display:inline-flex;gap:4px;align-items:center";
+  w.innerHTML = `<select>${[[anyLabel, ""], ...COMPASS].map(([n, b]) => `<option value="${b}">${n}</option>`).join("")}<option value="deg">degrees…</option></select>
+    <input type="number" min="0" max="359" step="1" title="degrees: 0 = north, 90 = east, 180 = south, 270 = west" placeholder="°" style="width:58px">`;
+  const sel = w.querySelector("select"), num = w.querySelector("input");
+  const sync = v => {
+    if (v == null) { sel.value = ""; num.value = ""; num.style.display = "none"; return; }
+    const c = COMPASS.find(([, b]) => b === norm(v));
+    sel.value = c ? String(c[1]) : "deg"; num.value = Math.round(norm(v)); num.style.display = "";
+  };
+  sync(value);
+  sel.onchange = () => {
+    if (sel.value === "") { sync(null); onChange(null); }
+    else if (sel.value === "deg") { num.style.display = ""; num.focus(); if (num.value === "") num.value = 0; onChange(Number(num.value)); }
+    else { sync(Number(sel.value)); onChange(Number(sel.value)); }
+  };
+  num.oninput = () => {
+    if (num.value === "") return;
+    const v = norm(Number(num.value)), c = COMPASS.find(([, b]) => b === v);
+    sel.value = c ? String(v) : "deg"; onChange(v);
+  };
+  w.set = sync;
+  return w;
+}
+function numCtl(value, onChange, attrs = {}) {
+  const i = document.createElement("input");
+  i.type = "number"; Object.assign(i, attrs); i.value = value ?? "";
+  i.oninput = () => onChange(i.value === "" ? null : Number(i.value));
+  return i;
+}
+function biomeSel(value, onChange) {
+  const s = document.createElement("select");
+  s.innerHTML = `<option value="">any biome</option>` + META.biomes.map(b => `<option value="+${b}">in ${b}</option>`).join("") +
+                META.biomes.map(b => `<option value="-${b}">not in ${b}</option>`).join("");
+  s.value = value || ""; s.onchange = () => onChange(s.value);
+  return s;
+}
+const txt = t => Object.assign(document.createElement("span"), { className: "lbl", textContent: t });
+
+/* ---------------------------------------------------------------- form rendering */
+function renderAll() {
+  renderAt(); renderBiomes(); renderLms(); renderAbs();
+  $("#heading").value = ST.view.heading ?? ""; $("#atB").value = ST.view.atB ?? ""; $("#lmB").value = ST.view.lmB ?? ""; $("#maxD").value = ST.view.maxD ?? "";
+  $("#viewBox").open = ST.view.atB != null;
+  $("#org").value = ST.org || "";
+  drawBoard();
+}
+function renderAt() {
+  const box = $("#atBox"); box.innerHTML = "";
+  box.appendChild(pickBtn(ST.at.type, t => { ST.at.type = t; if (!isTunnel(t)) ST.at.facing = null; renderAt(); changed(); }));
+  if (isTunnel(ST.at.type)) {
+    const l = document.createElement("div"); l.className = "line";
+    l.append(txt("its tunnel entrance is on the"), dirCtl(ST.at.facing, v => { ST.at.facing = v; changed(); }, "any"), txt("side"));
+    box.appendChild(l);
+  }
+}
+function renderBiomes() {
+  $("#biomes").innerHTML = META.biomes.map(b => {
+    const c = ST.biomeIn.includes(b) ? "in" : ST.biomeOut.includes(b) ? "out" : "";
+    return `<span class="chip ${c}" data-b="${b}" title="click: must be → must NOT be → any"><i style="background:${BCOL[b]}"></i>${b}</span>`;
+  }).join("");
+}
+$("#biomes").onclick = e => {
+  const c = e.target.closest(".chip"); if (!c) return;
+  const b = c.dataset.b;
+  if (ST.biomeIn.includes(b)) { ST.biomeIn = ST.biomeIn.filter(x => x !== b); ST.biomeOut.push(b); }
+  else if (ST.biomeOut.includes(b)) ST.biomeOut = ST.biomeOut.filter(x => x !== b);
+  else ST.biomeIn.push(b);
+  renderBiomes(); save();
+};
+function renderLms() {
+  const box = $("#lms"); box.innerHTML = "";
+  for (const lm of ST.lms) {
+    const el = document.createElement("div"); el.className = "item";
+    const head = document.createElement("div"); head.className = "head";
+    const name = document.createElement("div"); name.className = "name";
+    name.appendChild(pickBtn(lm.type, t => { lm.type = t; if (!isTunnel(t)) lm.facing = null; renderLms(); changed(); }));
+    const x = Object.assign(document.createElement("button"), { type: "button", className: "x", textContent: "×", title: "remove" });
+    x.onclick = () => { ST.lms = ST.lms.filter(l => l !== lm); renderLms(); changed(); };
+    head.append(name, x);
+    const l1 = document.createElement("div"); l1.className = "line";
+    lm._dir = dirCtl(lm.bearing, v => { lm.bearing = v; changed(); });
+    lm._dist = numCtl(lm.dist, v => { lm.dist = v; changed(); }, { min: 0.5, step: 0.5, title: "within this many squares (to its edge)" });
+    l1.append(txt("direction"), lm._dir, txt("±"), numCtl(lm.tol, v => { lm.tol = v || 30; save(); }, { min: 5, max: 90, title: "direction tolerance (°)", style: "width:52px" }),
+              txt("°  within"), lm._dist, txt("sq"));
+    const l2 = document.createElement("div"); l2.className = "line";
+    l2.append(biomeSel(lm.biome, v => { lm.biome = v; save(); }));
+    if (isTunnel(lm.type)) {
+      lm._face = dirCtl(lm.facing, v => { lm.facing = v; changed(); }, "any");
+      l2.append(txt("its tunnel side"), lm._face);
+    }
+    el.append(head, l1, l2);
+    box.appendChild(el);
+  }
+}
+function renderAbs() {
+  const box = $("#abs"); box.innerHTML = "";
+  for (const ab of ST.abs) {
+    const el = document.createElement("div"); el.className = "item absent";
+    const head = document.createElement("div"); head.className = "head";
+    const name = document.createElement("div"); name.className = "name";
+    name.appendChild(pickBtn(ab.type, t => { ab.type = t; renderAbs(); changed(); }));
+    const x = Object.assign(document.createElement("button"), { type: "button", className: "x", textContent: "×", title: "remove" });
+    x.onclick = () => { ST.abs = ST.abs.filter(l => l !== ab); renderAbs(); changed(); };
+    head.append(name, x);
+    const l1 = document.createElement("div"); l1.className = "line";
+    ab._dir = dirCtl(ab.bearing, v => { ab.bearing = v; changed(); }, "any dir.");
+    ab._dist = numCtl(ab.dist, v => { ab.dist = v; changed(); }, { min: 0.5, step: 0.5 });
+    l1.append(txt("none"), ab._dir, txt("±"), numCtl(ab.tol, v => { ab.tol = v || 45; save(); }, { min: 5, max: 180, style: "width:52px" }),
+              txt("°  within"), ab._dist, txt("sq"));
+    el.append(head, l1);
+    box.appendChild(el);
+  }
+}
+$("#addLm").onclick = () => { ST.lms.push(newLm()); renderLms(); changed(); };
+$("#addAbs").onclick = () => { ST.abs.push(newAbs()); renderAbs(); changed(); };
+for (const [id, k] of [["#heading", "heading"], ["#atB", "atB"], ["#lmB", "lmB"], ["#maxD", "maxD"]])
+  $(id).oninput = e => { ST.view[k] = e.target.value === "" ? null : Number(e.target.value); save(); };
+$("#org").oninput = e => { ST.org = e.target.value; save(); };
+$("#reset").onclick = () => { ST = blank(); ST.lms.push(newLm()); renderAll(); save(); };
+
+/* ---------------------------------------------------------------- picker */
+let pickCb = null;
+function openPicker(cb) { pickCb = cb; $("#pickQ").value = ""; renderPicker(); $("#picker").showModal(); $("#pickQ").focus(); }
+$("#pickClose").onclick = () => $("#picker").close();
+$("#picker").onclick = e => { if (e.target === $("#picker")) $("#picker").close(); };
+$("#pickQ").oninput = renderPicker;
+$("#pickQ").onkeydown = e => {
+  if (e.key === "Enter") { e.preventDefault(); const v = $("#pickQ").value.trim(); if (v) { pickCb(v); $("#picker").close(); } }
+};
+function renderPicker() {
+  const q = $("#pickQ").value.trim().toLowerCase();
+  const all = [OCEAN, ...META.types].filter(t => !q || (t.label || t.name).toLowerCase().includes(q));
+  const order = ["Large monuments", "Small monuments", "Rocks & cliffs", "Power lines", "Water, ice & terrain", "Tunnel entrances", "Caves", "Other"];
+  let html = q ? `<p class="hint">Enter = use “${esc($("#pickQ").value)}” as typed (it matches any name containing it; A|B = either).</p>` : "";
+  for (const cat of order) {
+    const ts = all.filter(t => t.cat === cat); if (!ts.length) continue;
+    html += `<h4>${cat}</h4><div class="tiles">` + ts.map(t => {
+      const bg = t.photo || t.thumb || "";
+      const style = t.name === "ocean" ? "background:linear-gradient(#2c5d86,#173a57)" : bg ? `background-image:url('${esc(bg)}')` : "";
+      return `<button type="button" class="tile" data-t="${esc(t.name)}">
+        <div class="img" style="${style}">${t.icon ? `<img class="ic" src="${esc(t.icon)}" alt="" loading="lazy" onerror="this.remove()">` : ""}${t.photos > 1 ? `<span class="more">${t.photos} photos</span>` : ""}</div>
+        <div class="nm">${esc(t.label || t.name)}${t.tunnel ? ` <span class="tunnel">rotation</span>` : ""}<small>${t.maps ? `on ${t.maps} maps` : "open water"}</small></div></button>`;
+    }).join("") + `</div>`;
+  }
+  $("#pickBody").innerHTML = html || `<p class="hint">Nothing matches.</p>`;
+  $("#pickBody").querySelectorAll(".tile").forEach(b => b.onclick = () => { pickCb(b.dataset.t); $("#picker").close(); });
+}
+
+/* ---------------------------------------------------------------- sketch board */
+const BR = 190;                                    // board radius in SVG units
+function boardScale() {
+  const far = Math.max(4, ...ST.lms.map(l => l.dist || 0), ...ST.abs.map(a => a.dist || 0));
+  return BR / (Math.ceil(far) + 1);               // svg units per square
+}
+const polar = (b, r) => [Math.sin(b * Math.PI / 180) * r, -Math.cos(b * Math.PI / 180) * r];
+const tokenSize = (t, k) => Math.max(13, Math.min(60, ((typeInfo(t)?.radius || 0) / SQ) * k));
+function drawBoard() {
+  const k = boardScale(), n = Math.floor(BR / k);
+  let s = `<defs><clipPath id="cc" clipPathUnits="objectBoundingBox"><circle cx=".5" cy=".5" r=".5"/></clipPath></defs>`;
+  for (let i = -n; i <= n; i++) {
+    const w = i === 0 ? 1.4 : .7;
+    s += `<line x1="${i * k}" y1="${-BR}" x2="${i * k}" y2="${BR}" stroke="#2a2420" stroke-width="${w}"/>`;
+    s += `<line y1="${i * k}" x1="${-BR}" y2="${i * k}" x2="${BR}" stroke="#2a2420" stroke-width="${w}"/>`;
+  }
+  for (const [nm, b] of COMPASS.filter((_, i) => i % 2 === 0)) { const [x, y] = polar(b, BR - 9); s += `<text x="${x}" y="${y + 4}" text-anchor="middle">${nm}</text>`; }
+  const tok = (kind, id, t, x, y, face, dashed) => {
+    const r = tokenSize(t, k), src = imgOf(t), col = kind === "abs" ? "#d0573f" : kind === "at" ? "#e8643f" : "#d8cfc4";
+    const dash = dashed ? 'stroke-dasharray="4 3"' : "";
+    let g = `<g class="tok" data-kind="${kind}" data-id="${id}" transform="translate(${x},${y})">`;
+    if (t === "ocean") g += `<circle r="${r}" fill="#2c5d86" stroke="${col}" stroke-width="2" ${dash}/><text y="5" text-anchor="middle" style="fill:#cfe6f7;font-size:15px">≈</text>`;
+    else {
+      g += `<circle r="${r}" fill="#2b2520"/>`;
+      // thumbnails are drawn with the tunnel entrance pointing up, so rotating by the facing puts it on that side
+      if (src) g += `<image href="${esc(src)}" x="${-r}" y="${-r}" width="${2 * r}" height="${2 * r}" clip-path="url(#cc)" preserveAspectRatio="xMidYMid slice" transform="rotate(${face ?? 0})"/>`;
+      g += `<circle r="${r}" fill="none" stroke="${col}" stroke-width="2" ${dash}/>`;
+    }
+    if (kind === "abs") g += `<path d="M${-r * .6},${-r * .6}L${r * .6},${r * .6}M${r * .6},${-r * .6}L${-r * .6},${r * .6}" stroke="#d0573f" stroke-width="3"/>`;
+    g += `<text class="lab" y="${r + 12}" text-anchor="middle">${esc(t ? (typeInfo(t)?.label || t) : "?")}${dashed ? " (any dir.)" : ""}</text></g>`;
+    if (isTunnel(t)) {
+      const [hx, hy] = polar(face ?? 0, r + 7);
+      g += `<line x1="${x}" y1="${y}" x2="${x + hx}" y2="${y + hy}" stroke="#e8643f" stroke-width="1.5" ${face == null ? 'stroke-dasharray="2 2"' : ""}/>
+            <circle class="rot" data-kind="${kind}" data-id="${id}" cx="${x + hx}" cy="${y + hy}" r="6" fill="${face == null ? "#2b2520" : "#e8643f"}" stroke="#e8643f" stroke-width="2"><title>drag to turn: tunnel entrance side${face == null ? " (not set yet)" : ` (${face}°)`}</title></circle>`;
+    }
+    return g;
+  };
+  ST.abs.forEach(a => { if (!a.type) return; const [x, y] = polar(a.bearing ?? 180, (a.dist || 1) * k); s += tok("abs", a.id, a.type, x, y, null, a.bearing == null); });
+  ST.lms.forEach(l => { if (!l.type) return; const [x, y] = polar(l.bearing ?? 0, (l.dist || 1) * k); s += tok("lm", l.id, l.type, x, y, l.facing, l.bearing == null); });
+  s += ST.at.type ? tok("at", 0, ST.at.type, 0, 0, ST.at.facing, false)
+                  : `<circle r="16" fill="none" stroke="#e8643f" stroke-dasharray="4 3"/><text y="34" text-anchor="middle">pick the main monument</text>`;
+  $("#board").innerHTML = s;
+}
+(function boardDrag() {
+  const svg = $("#board"); let drag = null;
+  const pt = e => { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); };
+  const item = (kind, id) => kind === "at" ? ST.at : (kind === "lm" ? ST.lms : ST.abs).find(o => o.id === Number(id));
+  svg.addEventListener("pointerdown", e => {
+    const rot = e.target.closest(".rot"), tok = e.target.closest(".tok");
+    if (rot) drag = { mode: "rot", it: item(rot.dataset.kind, rot.dataset.id), kind: rot.dataset.kind, k: boardScale() };
+    else if (tok && tok.dataset.kind !== "at") drag = { mode: "move", it: item(tok.dataset.kind, tok.dataset.id), kind: tok.dataset.kind, k: boardScale() };
+    if (drag) { svg.setPointerCapture(e.pointerId); e.preventDefault(); }
+  });
+  svg.addEventListener("pointermove", e => {
+    if (!drag) return;
+    const p = pt(e), k = drag.k;            // keep the scale fixed while dragging
+    if (drag.mode === "move") {
+      drag.it.bearing = Math.round(norm(Math.atan2(p.x, -p.y) * 180 / Math.PI));
+      drag.it.dist = Math.max(0.5, Math.round(Math.hypot(p.x, p.y) / k * 2) / 2);
+      drag.it._dir?.set(drag.it.bearing); if (drag.it._dist) drag.it._dist.value = drag.it.dist;
+    } else {
+      let cx = 0, cy = 0;
+      if (drag.kind !== "at") [cx, cy] = polar(drag.it.bearing ?? (drag.kind === "abs" ? 180 : 0), (drag.it.dist || 1) * k);
+      drag.it.facing = Math.round(norm(Math.atan2(p.x - cx, -(p.y - cy)) * 180 / Math.PI));
+      if (drag.kind === "at") renderAt(); else drag.it._face?.set(drag.it.facing);
+    }
+    drawBoard();
+  });
+  const end = () => { if (drag) { drag = null; save(); drawBoard(); } };
+  svg.addEventListener("pointerup", end); svg.addEventListener("pointercancel", end);
+})();
+
+/* ---------------------------------------------------------------- search */
+function collect() {
+  const clues = { at: ST.at.type, biome: ST.biomeIn, biome_exclude: ST.biomeOut, landmarks: [], absent: [] };
+  if (ST.at.facing != null) clues.at_facing = ST.at.facing;
+  for (const l of ST.lms) {
+    if (!l.type) continue;
+    const o = { type: l.type, max_dist: (l.dist || 5) * SQ, tolerance: l.tol || 30 };
+    if (l.bearing != null) o.bearing = l.bearing;
+    if (l.biome?.startsWith("+")) o.biome = [l.biome.slice(1)];
+    if (l.biome?.startsWith("-")) o.biome_exclude = [l.biome.slice(1)];
+    if (l.facing != null) o.facing = l.facing;
+    clues.landmarks.push(o);
+  }
+  for (const a of ST.abs) {
+    if (!a.type) continue;
+    const o = { type: a.type, max_dist: (a.dist || 7) * SQ, tolerance: a.tol || 45 };
+    if (a.bearing != null) o.bearing = a.bearing;
+    clues.absent.push(o);
+  }
+  const v = ST.view;
+  if (v.heading != null) { clues.heading = v.heading; clues.hfov = 107; }
+  const view = (v.atB != null && v.lmB != null) ? { at_bearing: v.atB, lm_bearing: v.lmB, max_dist: v.maxD == null ? null : v.maxD * SQ } : null;
+  return { clues, view, org: ST.org.trim() };
+}
+$("#form").onsubmit = e => { e.preventDefault(); search(); };
+async function search() {
+  const q = collect();
+  if (!q.clues.at) { $("#summary").innerHTML = `<span class="err">Pick the monument you're at first.</span>`; return; }
+  $("#go").disabled = true; $("#go").textContent = "Searching…";
+  try {
+    const r = await fetch("/api/search", { method: "POST", body: JSON.stringify({ ...q, top: 60 }) });
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    LAST = { q, data }; SEL = null; renderList();
+  } catch (err) {
+    $("#summary").innerHTML = `<span class="err">${esc(err.message)}</span>`;
+  } finally { $("#go").disabled = false; $("#go").textContent = "Search all maps"; }
+}
+const scoreColor = s => s >= .9 ? "var(--good)" : s >= .7 ? "var(--warn)" : "var(--bad)";
+function renderList() {
+  const { data, q } = LAST;
+  $("#summary").textContent = data.total ? `Top ${data.results.length} of ${data.total} candidates` : "No candidates: no map has that monument.";
+  $("#list").innerHTML = data.results.map((r, i) => {
+    const srv = r.servers.length ? r.servers[0].name + (r.servers.length > 1 ? `  (+${r.servers.length - 1})` : "") : `map ${r.map8} (no tracked server)`;
+    const d = r.detail;
+    let tags = d.facing != null ? `<span class="tag">tunnel ${dirName(d.facing)} (${d.facing}°)</span>` : (q.clues.at_facing != null ? `<span class="tag miss">rotation unknown</span>` : "");
+    tags += (d.landmarks || []).map((v, j) => v
+      ? `<span class="tag" title="${v.dist} m centre to centre${v.edge != null ? `, ${v.edge} m to its edge` : ""}, bearing ${v.bearing}°">${esc(v.type)} ${sq(v.edge ?? v.dist)} sq ${dirName(v.bearing)}${v.facing != null ? ` · tunnel ${dirName(v.facing)}` : ""}</span>`
+      : `<span class="tag miss">no ${esc(q.clues.landmarks[j]?.type)}</span>`).join("");
+    tags += (d.absent || []).map(v => v ? `<span class="tag hit" title="should not be there">✗ ${esc(v.type)} ${sq(v.edge ?? v.dist)} sq ${dirName(v.bearing)}</span>` : "").join("");
+    const mix = d.biome ? `<div class="mix">${Object.entries(d.biome).map(([b, f]) =>
+      `<span title="${b} ${Math.round(f * 100)}%" style="width:${f * 100}%;background:${BCOL[b] || "#555"}"></span>`).join("")}</div>` : "";
+    const you = r.viewer ? `<span class="tag">you: ${r.viewer.grid}, ${sq(r.viewer.dist_at)} / ${sq(r.viewer.dist_lm)} sq away</span>` : "";
+    return `<div class="card${SEL === i ? " sel" : ""}" data-i="${i}">
+      <div class="top"><span class="score" style="color:${scoreColor(r.score)}">${r.score.toFixed(2)}</span>
+        <div class="bar"><b style="width:${r.score * 100}%;background:${scoreColor(r.score)}"></b></div></div>
+      <div class="srv" title="${esc(srv)}">${esc(srv)}</div>
+      <div class="meta">${esc(r.type)} · grid ${r.grid} · seed ${r.seed} · ${r.size} m</div>
+      <div class="tags">${tags}${you}</div>${mix}</div>`;
+  }).join("");
+  document.querySelectorAll(".card").forEach(c => c.onclick = () => select(Number(c.dataset.i)));
+  if (data.results.length) select(0);
+}
+
+/* ---------------------------------------------------------------- preview map with zoom / pan */
+function select(i) {
+  SEL = i;
+  document.querySelectorAll(".card").forEach(c => c.classList.toggle("sel", Number(c.dataset.i) === i));
+  const r = LAST.data.results[i];
+  const servers = r.servers.length ? r.servers.map(s => `<div><span>${esc(s.name)}</span>
+      <code>${s.ip}:${s.gamePort}</code><button class="btn" type="button" data-c="client.connect ${s.ip}:${s.gamePort}">copy connect</button>
+      <span class="meta">wiped ${String(s.lastWipeUtc || "").slice(0, 10)}</span></div>`).join("") : `<div class="meta">No tracked server runs this map right now.</div>`;
+  const you = r.viewer ? `<p class="meta">Estimated position: <b>${r.viewer.grid}</b>, ${r.viewer.biome};
+      ${sq(r.viewer.dist_at)} sq from the ${esc(r.type)}, ${sq(r.viewer.dist_lm)} sq from the other landmark.</p>` : "";
+  $("#preview").innerHTML = `<h3>${esc(r.type)} · grid ${r.grid}</h3>
+    <div class="meta">score ${r.score.toFixed(2)} · seed ${r.seed} · size ${r.size} · <a href="https://rustmaps.com/map/${r.map}" target="_blank" rel="noopener">open on rustmaps</a></div>
+    <div class="servers">${servers}</div>${you}
+    <div class="mapbox"><img id="img" alt="map around the match" draggable="false">
+      <div class="tools"><button type="button" data-z="in" title="zoom in">+</button><button type="button" data-z="out" title="zoom out">−</button>
+        <button type="button" data-z="fit" title="back to the match">match</button><button type="button" data-z="all" title="whole map">whole map</button></div>
+      <div class="zoominfo" id="zinfo"></div></div>
+    <p class="hint">Scroll to zoom, drag to move.</p>`;
+  $("#preview").querySelectorAll("[data-c]").forEach(b => b.onclick = () => {
+    navigator.clipboard?.writeText(b.dataset.c); b.textContent = "copied"; setTimeout(() => b.textContent = "copy connect", 1200); });
+  const v = r.viewer;
+  const fitC = v ? [(r.x + v.x) / 2, (r.y + v.y) / 2] : [r.x, r.y];
+  const fitS = v ? Math.max(700, Math.hypot(r.x - v.x, r.y - v.y) / 2 + 350) : 700;
+  VIEW = { r, i, c: fitC, span: fitS, fitC, fitS, max: r.size / 2 };
+  $("#preview").querySelectorAll("[data-z]").forEach(b => b.onclick = () => {
+    const z = b.dataset.z;
+    if (z === "in") VIEW.span = Math.max(150, VIEW.span / 1.5);
+    if (z === "out") VIEW.span = Math.min(VIEW.max, VIEW.span * 1.5);
+    if (z === "fit") { VIEW.c = VIEW.fitC; VIEW.span = VIEW.fitS; }
+    if (z === "all") { VIEW.c = [0, 0]; VIEW.span = VIEW.max; }
+    loadMap();
+  });
+  const img = $("#img");
+  img.addEventListener("wheel", e => {
+    e.preventDefault();
+    const rect = img.getBoundingClientRect(), f = e.deltaY < 0 ? 1 / 1.25 : 1.25;
+    const mx = (e.clientX - rect.left) / rect.width * 2 - 1, my = (e.clientY - rect.top) / rect.height * 2 - 1;
+    const ns = Math.min(VIEW.max, Math.max(150, VIEW.span * f));
+    // keep the point under the cursor in place
+    VIEW.c = [VIEW.c[0] + mx * (VIEW.span - ns), VIEW.c[1] - my * (VIEW.span - ns)];
+    VIEW.span = ns; loadMap(true);
+  }, { passive: false });
+  let pan = null;
+  img.addEventListener("pointerdown", e => { pan = { x: e.clientX, y: e.clientY, c: VIEW.c.slice() }; img.setPointerCapture(e.pointerId); });
+  img.addEventListener("pointermove", e => {
+    if (!pan) return;
+    const k = 2 * VIEW.span / img.getBoundingClientRect().width;
+    img.style.transform = `translate(${e.clientX - pan.x}px, ${e.clientY - pan.y}px)`;
+    VIEW._next = [pan.c[0] - (e.clientX - pan.x) * k, pan.c[1] + (e.clientY - pan.y) * k];
+  });
+  const endPan = () => { if (!pan) return; pan = null; if (VIEW._next) { VIEW.c = VIEW._next; VIEW._next = null; loadMap(); } };
+  img.addEventListener("pointerup", endPan); img.addEventListener("pointercancel", endPan);
+  loadMap();
+}
+let mapTimer = null, mapSeq = 0;
+function loadMap(debounce) {
+  clearTimeout(mapTimer);
+  mapTimer = setTimeout(async () => {
+    const { r, i } = VIEW, seq = ++mapSeq, lim = VIEW.max;
+    VIEW.c = [Math.max(-lim, Math.min(lim, VIEW.c[0])), Math.max(-lim, Math.min(lim, VIEW.c[1]))];
+    $("#zinfo").textContent = `view ≈ ${Math.round(VIEW.span * 2 / SQ)} squares wide`;
+    const res = await fetch("/api/render", { method: "POST", body: JSON.stringify({
+      map8: r.map8, x: r.x, y: r.y, detail: r.detail, clues: LAST.q.clues, viewer: r.viewer, center: VIEW.c, span: VIEW.span, px: 900 }) });
+    if (SEL !== i || seq !== mapSeq || !res.ok) return;
+    const img = $("#img"), url = URL.createObjectURL(await res.blob());
+    img.onload = () => { img.style.transform = ""; };
+    img.src = url;
+  }, debounce ? 180 : 0);
+}
+
+/* ---------------------------------------------------------------- examples */
+$("#ex1").onclick = () => {
+  ST = blank();
+  ST.at.type = "Supermarket"; ST.biomeIn = ["temperate"];
+  ST.lms = [newLm({ type: "Excavator", bearing: 0, dist: 10, tol: 30 }), newLm({ type: "Powerline", bearing: 315, dist: 2, tol: 35 })];
+  ST.view.heading = 332; renderAll(); save(); search();
+};
+$("#ex2").onclick = () => {
+  ST = blank();
+  ST.at.type = "Lighthouse"; ST.biomeIn = ["temperate"];
+  ST.lms = [newLm({ type: "Ferry Terminal", bearing: 270, dist: 10, tol: 40 }), newLm({ type: "ocean", bearing: 0, dist: 5, tol: 45 })];
+  ST.view = { heading: 348, atB: 25, lmB: 335, maxD: 5 }; renderAll(); save(); search();
+};
+
+init();
+</script>
+</body>
+</html>
