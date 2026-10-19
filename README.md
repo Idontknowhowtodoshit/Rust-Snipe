@@ -1,11 +1,10 @@
 # Rust-Snipe
 
-Find **which server and where on the map** a Rust screenshot or clip was taken.
+Easily find and snipe toasty.
 
-You describe what you see: the monument you're next to, its biome, what else is around
+You describe what you see: the monument you're next to, its biome, what else is around toasty
 and in which direction, which way the monument is turned. Rust-Snipe checks that against the
-current map of every popular Rust server (Rustoria, Rustafied, Rusty Moose, Rusticated,
-Vital, Survivors, Atlas, UKN and more). It ranks every possible spot and gives you the server,
+current map of every popular Rust server. It ranks every possible spot and gives you the server,
 the grid square and a ready-to-paste `client.connect` line.
 
 It runs locally in your browser. No account or API key is needed.
