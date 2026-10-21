@@ -1,5 +1,6 @@
 """Local web UI for rustloc: build clues ("Lighthouse in temperate, Ferry Terminal to the west...")
 and search every downloaded server map. Start with:  python rustloc.py ui"""
+import base64
 import io
 import json
 import os
@@ -14,6 +15,7 @@ from pathlib import Path
 
 from PIL import Image
 
+import cutout as C
 import rustloc as R
 
 HERE = Path(__file__).resolve().parent
@@ -86,7 +88,8 @@ def load_pool():
             "photo": f"/api/photo?name={urllib.parse.quote(pk)}" if pk else None,
             "photos": len(PHOTOS.get(pk, [])) if pk else 0,
             "icon": f"/api/icon?type={urllib.parse.quote(t)}" if icons.get(t) and not icon_missing(t) else None,
-            "thumb": f"/api/thumb?type={urllib.parse.quote(t)}" if cat in ("Large monuments", "Small monuments") else None,
+            "thumb": thumb_url(t, cat),
+            "cutout": C.half_metres(t),                 # your own top-down picture: half its width in metres
             "tunnel": bool(R.tunnel_type(t)),
             "radius": R.monument_radius({"type": t, "sizeCategory": sizes[t].most_common(1)[0][0]}),
         })
@@ -171,6 +174,8 @@ def do_search(body):
     keep = 400 if view else int(body.get("top", 60))
     res = res[:keep]
     for r in res:
+        if r.get("pov"):
+            continue                                  # the result already is the player's position
         r["viewer"] = None
         if view:
             # Triangulate where the player stood from the two landmarks' on-screen bearings
@@ -184,6 +189,8 @@ def do_search(body):
     if view:
         # Halve the score where the bearings put the player in the sea, or (if given) too far away
         for r in res:
+            if r.get("pov"):
+                continue
             v = r["viewer"]
             too_far = view.get("max_dist") and max(v["dist_at"], v["dist_lm"]) > view["max_dist"] if v else True
             if not v or v["biome"] == "water" or too_far:
@@ -284,9 +291,21 @@ def icon(base):
         raise
 
 
+def thumb_url(t, cat):
+    cut = C.path_for(t)
+    if cut:   # version in the url so a re-made cut-out shows up without a hard refresh
+        return f"/api/thumb?type={urllib.parse.quote(t)}&v={int(cut.stat().st_mtime)}"
+    return f"/api/thumb?type={urllib.parse.quote(t)}" if cat in ("Large monuments", "Small monuments") else None
+
+
 def thumb(base):
-    """Top-down crop of a real instance from the map renders. Monuments with their own tunnel
-    entrance are rotated so that entrance points up (north), i.e. this is 'facing 0'."""
+    """Your own cut-out (cutouts/, see cutout.py) if there is one, else a top-down crop of a real
+    instance from the map renders. Monuments with their own tunnel entrance are rotated so that
+    entrance points up (north), i.e. this is 'facing 0'."""
+    cut = C.path_for(base)
+    if cut:
+        return cut.read_bytes()
+
     def make():
         tunnel = R.tunnel_type(base)
         for mi in POOL.values():
@@ -311,6 +330,50 @@ def thumb(base):
         raise KeyError(base)
     slug = re.sub(r"\W+", "_", base).lower()
     return cached(ASSETS / "thumbs" / f"{slug}.png", make)
+
+
+# ---------------------------------------------------------------- cut-out matching page (/cutouts)
+CUT_REFS = {}
+
+
+def cut_ref(map_id, name):
+    """(JPEG, info) of the map around `name` at 2 px/m, centred on it, tunnel entrance up: what a
+    cut-out is lined up against on the matching page."""
+    key = (C.map_id_of(map_id) if map_id else "", name)
+    if key not in CUT_REFS:
+        inst = C.instances(name, map_id or None, n=1)
+        if not inst:
+            raise ValueError(f"no {'such' if map_id else 'downloaded classic'} map has a {name} with map tiles")
+        d, folder, m = inst[0]
+        im = C.crop(d, folder, m, 2.0)
+        buf = io.BytesIO()
+        im.save(buf, "JPEG", quality=88)
+        tunnel = bool(R.tunnel_type(name))
+        c = m["coordinates"]
+        CUT_REFS[key] = (buf.getvalue(), {
+            "half": im.width / 2 / 2.0, "res": 2.0, "tunnel": tunnel, "facing": R.facing(d, m) if tunnel else None,
+            "entrance_m": R.TUNNEL_OFFSET.get(R.tunnel_type(name)) if tunnel else None,
+            "radius": R.monument_radius(m), "map": d["id"], "seed": d.get("seed"), "grid": R.grid_ref(c["x"], c["y"], d["size"])})
+    return CUT_REFS[key]
+
+
+def picture(data_url):
+    return Image.open(io.BytesIO(base64.b64decode(data_url.split(",", 1)[-1]))).convert("RGBA")
+
+
+def cut_fit(body):
+    return C.fit(picture(body["image"]), body["type"], map_id=body.get("map") or None, heading=body.get("heading"))
+
+
+def cut_save(body):
+    name = body["type"]
+    dst, out = C.save(picture(body["image"]), name, float(body["theta"]), float(body["s"]), float(body["cx"]),
+                      float(body["cy"]), source=body.get("source", ""), map_id=body.get("map") or None,
+                      heading=body.get("heading"), method=body.get("method", "manual"), score=body.get("score"))
+    for t in META.get("types", []):               # the sketch picks it up on its next page load
+        if t["name"] == name:
+            t["cutout"], t["thumb"] = C.half_metres(name), thumb_url(name, t["cat"])
+    return {"file": dst.name, "size_m": round(out.width / C.SCALE, 1)}
 
 
 def prefetch_assets(log=print):
@@ -361,6 +424,14 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if url.path in ("/", "/index.html"):
                 self.send(200, (HERE / "ui.html").read_bytes(), "text/html; charset=utf-8")
+            elif url.path == "/cutouts":
+                self.send(200, (HERE / "cutout.html").read_bytes(), "text/html; charset=utf-8")
+            elif url.path == "/api/cutout/info":
+                self.send(200, json.dumps(cut_ref(q.get("map", ""), q["type"])[1]).encode(), "application/json")
+            elif url.path == "/api/cutout/ref":
+                self.send(200, cut_ref(q.get("map", ""), q["type"])[0], "image/jpeg")
+            elif url.path == "/api/cutout/list":
+                self.send(200, json.dumps(C.load_log()).encode(), "application/json")
             elif url.path == "/api/meta":
                 self.send(200, json.dumps(META).encode(), "application/json")
             elif url.path == "/api/objects" and q.get("map8") in POOL:
@@ -395,6 +466,10 @@ class Handler(BaseHTTPRequestHandler):
             body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
             if self.path == "/api/search":
                 self.send(200, json.dumps(do_search(body)).encode(), "application/json")
+            elif self.path == "/api/cutout/fit":
+                self.send(200, json.dumps(cut_fit(body)).encode(), "application/json")
+            elif self.path == "/api/cutout/save":
+                self.send(200, json.dumps(cut_save(body)).encode(), "application/json")
             elif self.path == "/api/render":
                 self.send(200, do_render(body), "image/png")
             elif self.path == "/api/sync":

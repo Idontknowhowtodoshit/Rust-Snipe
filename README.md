@@ -75,7 +75,8 @@ python -m venv .venv
    type part of a server name.
 7. **Search**. Click a result to see it on the map. Scroll to zoom and drag to move. Click any
    label on the map for its picture and to add it as a *nearby* or *not nearby* clue. Use
-   *copy connect* to join the server.
+   *copy connect* to join the server. **Clear** (next to Search) removes every clue but keeps your
+   server filters.
 
 Distances are in grid squares (~146 m), measured to the edge of a monument. Something a little
 past your limit still counts partly, because distances are hard to judge in game.
@@ -83,6 +84,28 @@ past your limit still counts partly, because distances are hard to judge in game
 A 1.00 means every clue matched. If the right answer scores low, one clue is probably
 off. Check directions first: north is up on the sketch, and degrees run clockwise
 (0 = N, 90 = E, 180 = S, 270 = W).
+
+## Your own monument pictures
+
+The sketch board can show real top-down pictures of monuments ("cut-outs") instead of the small
+map crops. They are drawn to scale and turned with the monument's rotation.
+
+1. In game, look straight down at the monument from high up and take a screenshot. Note the
+   compass heading at the top of the screen (putting it in the file name, like
+   `Airfield heading 335.png`, fills it in for you).
+2. Cut the ground and water away and save it as a PNG with a transparent background.
+3. Open **Cut-outs** in the UI header (`http://127.0.0.1:8765/cutouts`) and drop the pictures in.
+   For each one, pick the monument and paste the rustmaps link of the map you took it on. It is
+   shown over that very monument on the map: press **Auto-match**, fix it by hand if needed (drag,
+   Shift+scroll to turn, Alt+scroll to resize), then **Save cut-out**.
+
+For monuments with a train-tunnel entrance, the yellow dot marks where the entrance building (FT)
+stands: put the picture's FT building on it. Saved cut-outs go to `cutouts/` with the entrance
+pointing up. How each one was lined up (scale, rotation, centre, heading, map) is logged in
+`cutouts/cutouts.json`. Reload the search page to see new ones on the sketch.
+
+From the command line, `python rustloc.py cutout pic.png "Large Harbor" --map <rustmaps link>`
+does the automatic match and writes `maps/cutout_check.png` to check it.
 
 ## Wipes and the map cache
 
@@ -109,6 +132,7 @@ python rustloc.py find clues/x.json --org rustoria         # only maps Rustoria 
 python rustloc.py find clues/x.json --region EU NA         # only servers in these regions
 python rustloc.py bearing --heading 332 --x 1550 --fov 75  # screen x position -> compass bearing
 python rustloc.py biome <map id>                           # biome classification preview
+python rustloc.py cutout pic.png "Large Harbor" --map <url> # add your own top-down monument picture
 ```
 
 The default server networks are in `DEFAULT_ORGS` in `rustloc.py`.

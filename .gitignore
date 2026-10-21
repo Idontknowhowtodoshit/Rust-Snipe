@@ -4,6 +4,7 @@
 # downloaded / generated data (rebuilt automatically on first start)
 maps/
 assets/
+cutouts/
 result.png
 
 # python

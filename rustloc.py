@@ -9,6 +9,8 @@ Commands
   find    <clues.json> [--org TEXT]   rank every candidate location in every downloaded map
   biome   <map id>                    write a biome-classification preview image
   ui      [--port 8765] [--no-browser]  web UI: describe what's next to what, search all maps
+  cutout  <picture.png> <monument>    add your own top-down cut-out of a monument to the sketch board
+                                      (or line it up by hand in the UI: /cutouts)
 
 World coordinates are rustmaps' (x = east, y = north, origin at the map centre).
 Compass bearings are Rust's: 0 = N, 90 = E.
@@ -600,7 +602,9 @@ def facing_score(d, m, want, tol):
     return (0.0, None) if f is None else (dir_score(ang_diff(f, want), tol), f)
 
 
-def score_landmark(d, mi, anchor, a, lm):
+def score_landmark(d, mi, anchor, a, lm, pool=None):
+    """Best match for one 'nearby' clue seen from point a. pool: the map's monuments of that type,
+    if already filtered (player-position search scores many points per map)."""
     tol = lm.get("tolerance", 25)
     lo, hi = lm.get("min_dist", 0), lm.get("max_dist", 1e9)
     want_b, excl_b = norm_biomes(lm.get("biome")), norm_biomes(lm.get("biome_exclude"))
@@ -626,8 +630,8 @@ def score_landmark(d, mi, anchor, a, lm):
         return best, info
 
     best, info = 0.0, None
-    for m in d["monuments"]:
-        if m is anchor or not type_match(m["type"], lm["type"]):
+    for m in (d["monuments"] if pool is None else pool):
+        if m is anchor or (pool is None and not type_match(m["type"], lm["type"])):
             continue
         p = (m["coordinates"]["x"], m["coordinates"]["y"])
         dist, edge = math.dist(a, p), edge_dist(a, m)
@@ -656,13 +660,13 @@ def score_landmark(d, mi, anchor, a, lm):
     return best, info
 
 
-def absent_hit(d, mi, anchor, a, ab):
+def absent_hit(d, mi, anchor, a, ab, pool=None):
     """The nearest thing that should NOT be there (within max_dist, in direction if given), or None."""
     if ab["type"].lower() in OCEAN_TYPES:
         s, info = score_landmark(d, mi, anchor, a, ab)
         return info if s >= 0.5 else None
-    for m in d["monuments"]:
-        if m is anchor or not type_match(m["type"], ab["type"]):
+    for m in (d["monuments"] if pool is None else pool):
+        if m is anchor or (pool is None and not type_match(m["type"], ab["type"])):
             continue
         if edge_dist(a, m) > ab.get("max_dist", 1e9):
             continue
@@ -674,37 +678,106 @@ def absent_hit(d, mi, anchor, a, ab):
     return None
 
 
-def score_candidate(d, mi, anchor, clues):
-    """Score one anchor monument against the clues. detail = {biome, facing, landmarks[], absent[]}."""
-    a = (anchor["coordinates"]["x"], anchor["coordinates"]["y"])
+def score_candidate(d, mi, anchor, clues, at=None, pools=None):
+    """Score one anchor monument against the clues, or (anchor None) the player position `at`, with
+    every clue measured from there. pools: {"landmarks": {i: [...]}, "absent": {i: [...]}}, the map's
+    monuments of each clue's type if already filtered. detail = {biome, facing, landmarks[], absent[]}."""
+    a = at if anchor is None else (anchor["coordinates"]["x"], anchor["coordinates"]["y"])
     parts, detail = [], {"landmarks": [], "absent": []}
+    pools = pools or {}
 
     wanted, excluded = norm_biomes(clues.get("biome")), norm_biomes(clues.get("biome_exclude"))
     if wanted or excluded:
-        mix = biome_around(mi, anchor, clues.get("biome_radius", 200))
+        mix = (biome_around(mi, anchor, clues.get("biome_radius", 200)) if anchor is not None
+               else mi.biome_mix(*a, radius=clues.get("biome_radius", 150)))
         detail["biome"] = mix
         if wanted:
             parts.append(biome_score(mix, wanted))
         if excluded:
             parts.append(biome_exclude_score(mix, excluded))
 
-    if "at_facing" in clues:
+    if "at_facing" in clues and anchor is not None:
         s, f = facing_score(d, anchor, clues["at_facing"], clues.get("at_facing_tol", 45))
         parts.append(s)
         detail["facing"] = f
 
-    for lm in clues.get("landmarks", []):
-        s, info = score_landmark(d, mi, anchor, a, lm)
+    for i, lm in enumerate(clues.get("landmarks", [])):
+        s, info = score_landmark(d, mi, anchor, a, lm, pools.get("landmarks", {}).get(i))
         parts.append(s)
         detail["landmarks"].append(info)
 
-    for ab in clues.get("absent", []):
-        hit = absent_hit(d, mi, anchor, a, ab)
+    for i, ab in enumerate(clues.get("absent", [])):
+        hit = absent_hit(d, mi, anchor, a, ab, pools.get("absent", {}).get(i))
         parts.append(0.0 if hit else 1.0)
         detail["absent"].append(hit)
 
     score = sum(parts) / len(parts) if parts else 1.0
     return score, detail
+
+
+# ---------------------------------------------------------------- search from where the player stands
+POV_SAME_SPOT = 150     # m: candidate positions closer than this are one answer
+POV_PER_MAP = 3         # best distinct spots kept per map
+
+
+def pov_candidates(d, clues, pools):
+    """Possible player positions on map d: where the bearings to the two rarest things with a
+    bearing cross, along the sight line to the rarest one, or (no bearings at all) in rings
+    around the rarest thing."""
+    lms = clues.get("landmarks", [])
+    pos = lambda m: (m["coordinates"]["x"], m["coordinates"]["y"])
+    reach = lambda lm, m: lm.get("max_dist", 7 * 146.3) * 1.5 + monument_radius(m)   # centre distance
+    rare = sorted((i for i in pools["landmarks"] if pools["landmarks"][i]), key=lambda i: len(pools["landmarks"][i]))
+    with_b = [i for i in rare if "bearing" in lms[i]]
+    pts = []
+    if len(with_b) >= 2:
+        i, j = with_b[:2]
+        for m1 in pools["landmarks"][i]:
+            for m2 in pools["landmarks"][j]:
+                if m1 is m2 or math.dist(pos(m1), pos(m2)) > reach(lms[i], m1) + reach(lms[j], m2):
+                    continue
+                t = triangulate(pos(m1), lms[i]["bearing"], pos(m2), lms[j]["bearing"])
+                if t and t[1] <= reach(lms[i], m1) and t[2] <= reach(lms[j], m2):
+                    pts.append(t[0])
+    if with_b:
+        i = with_b[0]
+        b = math.radians(lms[i]["bearing"])
+        for m in pools["landmarks"][i]:
+            p, r = pos(m), monument_radius(m)
+            for t in np.arange(r + 30, reach(lms[i], m) + 1, 60):
+                pts.append((p[0] - t * math.sin(b), p[1] - t * math.cos(b)))
+    elif rare:
+        i = rare[0]
+        for m in pools["landmarks"][i]:
+            p, r, hi = pos(m), monument_radius(m), lms[i].get("max_dist", 7 * 146.3)
+            for k in (0.3, 0.65, 1.0):
+                for ang in range(0, 360, 20):
+                    t = r + hi * k
+                    pts.append((p[0] - t * math.sin(math.radians(ang)), p[1] - t * math.cos(math.radians(ang))))
+    half = d["size"] / 2
+    return [p for p in pts if abs(p[0]) < half and abs(p[1]) < half]
+
+
+def score_pov(d, mi, clues):
+    """Best few distinct player positions on one map: [(score, (x, y), detail)]."""
+    pools = {"landmarks": {i: [m for m in d["monuments"] if type_match(m["type"], lm["type"])]
+                           for i, lm in enumerate(clues.get("landmarks", [])) if lm["type"].lower() not in OCEAN_TYPES},
+             "absent": {i: [m for m in d["monuments"] if type_match(m["type"], ab["type"])]
+                        for i, ab in enumerate(clues.get("absent", [])) if ab["type"].lower() not in OCEAN_TYPES}}
+    scored = []
+    for p in pov_candidates(d, clues, pools):
+        s, detail = score_candidate(d, mi, None, clues, at=p, pools=pools)
+        if mi.biome_at(*p) == "water":
+            s *= 0.5                                   # standing in the sea?
+        scored.append((s, p, detail))
+    scored.sort(key=lambda c: -c[0])
+    kept = []
+    for c in scored:
+        if all(math.dist(c[1], k[1]) > POV_SAME_SPOT for k in kept):
+            kept.append(c)
+            if len(kept) >= POV_PER_MAP:
+                break
+    return kept
 
 
 def is_classic(d):
@@ -714,7 +787,8 @@ def is_classic(d):
 
 
 def search(clues, map_ids=None, org=None, top=50, pool=None, classic_only=True, regions=None):
-    """Rank every clues['at'] monument in every downloaded map. Returns a list of result dicts.
+    """Rank every clues['at'] monument in every downloaded map, or (clues['mode'] == 'pov') every
+    likely player position, from what the player sees around them. Returns a list of result dicts.
     pool: optional {map_id8: MapImage} of preloaded maps (the UI keeps one in memory).
     org / regions: only maps run by servers whose name contains org / that are in one of regions."""
     by_map = {k[:8]: v for k, v in servers_by_map().items()}
@@ -732,9 +806,22 @@ def search(clues, map_ids=None, org=None, top=50, pool=None, classic_only=True, 
     else:
         maps = [pool[i[:8]] for i in map_ids if i[:8] in pool]
     results = []
+    pov = clues.get("mode") == "pov"
     for mi in maps:
         d = mi.d
         if classic_only and not is_classic(d):
+            continue
+        if pov:
+            for score, p, detail in score_pov(d, mi, clues):
+                x, y = round(p[0]), round(p[1])
+                you = {"type": "Your spot", "coordinates": {"x": x, "y": y}, "sizeCategory": ""}
+                results.append({
+                    "score": round(score, 3), "map": d["id"], "seed": d["seed"], "size": d["size"],
+                    "type": "Your spot", "x": x, "y": y, "grid": grid_ref(x, y, d["size"]), "pov": True,
+                    "viewer": {"x": x, "y": y, "grid": grid_ref(x, y, d["size"]), "biome": mi.biome_at(x, y)},
+                    "servers": by_map.get(d["id"][:8], []), "detail": detail,
+                    "_mi": mi, "_anchor": you, "_d": d,
+                })
             continue
         anchors = [m for m in d["monuments"] if type_match(m["type"], clues["at"])]
         if not anchors:
@@ -748,14 +835,18 @@ def search(clues, map_ids=None, org=None, top=50, pool=None, classic_only=True, 
                 "servers": by_map.get(d["id"][:8], []), "detail": detail,
                 "_mi": mi, "_anchor": anc, "_d": d,
             })
-    results.sort(key=lambda r: -r["score"])
+    # equal scores (every clue inside its tolerance): the one whose bearings match closest first
+    def bearing_err(r):
+        errs = [v["err"] for v in r["detail"]["landmarks"] if v and v.get("err") is not None]
+        return sum(errs) / len(errs) if errs else 0
+    results.sort(key=lambda r: (-r["score"], bearing_err(r)))
     return results[:top] if top else results
 
 
 def find(clues, map_ids=None, top=10, render=True, org=None, classic_only=True, regions=None):
     results = search(clues, map_ids, org, top=0, classic_only=classic_only, regions=regions)
     if not results:
-        print(f"no '{clues['at']}' in any downloaded map")
+        print(f"no '{clues.get('at') or 'match'}' in any downloaded map")
         return []
     print(f"{len(results)} candidates in {len({r['map'] for r in results})} maps")
     for rank, r in enumerate(results[:top], 1):
@@ -872,6 +963,10 @@ def main():
     sy.add_argument("--dry-run", action="store_true", help="show which old maps would be deleted, delete nothing")
     sy.add_argument("--no-prune", action="store_true", help="download new maps but keep old ones")
     bi = sub.add_parser("biome"); bi.add_argument("map")
+    co = sub.add_parser("cutout", help="add a top-down cut-out (transparent PNG) of a monument to the sketch")
+    co.add_argument("picture"); co.add_argument("monument", help='monument name as in the UI, e.g. "Large Harbor"')
+    co.add_argument("--map", help="rustmaps map (url or id) the picture was taken on: most accurate fit")
+    co.add_argument("--heading", type=float, help="compass heading when the screenshot was taken (default: from 'heading N' in the file name)")
     a = ap.parse_args()
     load_env()
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # server names carry emoji
@@ -904,6 +999,9 @@ def main():
     elif a.cmd == "ui":
         import ui
         ui.serve(a.port, open_browser=not a.no_browser)
+    elif a.cmd == "cutout":
+        import cutout
+        cutout.make(a.picture, a.monument, map_id=a.map, heading=a.heading)
 
 
 if __name__ == "__main__":

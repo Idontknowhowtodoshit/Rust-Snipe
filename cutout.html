@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rust-Snipe cut-outs</title>
+<style>
+  :root {
+    --bg: #14110f; --panel: #1d1916; --panel-2: #26211d; --panel-3: #2f2924; --line: #3a322c;
+    --text: #ece6df; --muted: #a39788; --accent: #cd412a; --accent-2: #e8643f;
+    --good: #6fbf5a; --warn: #d9a43a; --bad: #d0573f; --radius: 8px;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); display: flex; flex-direction: column;
+         font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { display: flex; align-items: center; gap: 14px; padding: 10px 18px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 18px; letter-spacing: .5px; }
+  header h1 span { color: var(--accent-2); }
+  header .sub { color: var(--muted); }
+  header .spacer { flex: 1; }
+  main { flex: 1; min-height: 0; display: grid; grid-template-columns: 340px 1fr; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; grid-template-rows: auto 70vh; } }
+  aside { padding: 14px 16px 30px; border-right: 1px solid var(--line); background: var(--panel); overflow-y: auto; }
+  section { margin-bottom: 18px; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin: 0 0 8px; font-weight: 600; }
+  label.f { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 4px; }
+  input, select, button { font: inherit; color: var(--text); }
+  input[type=text], input[type=number], select {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 5px 7px; min-width: 0; width: 100%; }
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  input[type=range] { width: 100%; accent-color: var(--accent-2); }
+  .btn { background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 13px; text-decoration: none; }
+  .btn:hover { border-color: var(--muted); }
+  a.btn { color: var(--text); }
+  [hidden] { display: none !important; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .btn.main { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; width: 100%; padding: 8px; }
+  .btn.main:hover { background: var(--accent-2); }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row > * { flex: 1; }
+  .hint { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
+  .ok { color: var(--good); } .err { color: var(--bad); }
+  #drop { border: 1.5px dashed var(--line); border-radius: var(--radius); padding: 14px; text-align: center; color: var(--muted); cursor: pointer; }
+  #drop.over { border-color: var(--accent-2); color: var(--text); }
+  #pics { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+  .pic { display: flex; gap: 8px; align-items: center; padding: 4px 6px; border: 1px solid transparent; border-radius: 6px; cursor: pointer; }
+  .pic:hover { background: var(--panel-2); }
+  .pic.sel { border-color: var(--accent-2); background: var(--panel-2); }
+  .pic img { width: 34px; height: 34px; object-fit: contain; background: var(--panel-3); border-radius: 4px; }
+  .pic .n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+  .pic .n small { display: block; color: var(--muted); font-size: 11px; }
+  .pic .st { font-size: 12px; }
+  .ctl { display: grid; grid-template-columns: 1fr 74px; gap: 6px; align-items: center; }
+  .ctl input[type=number] { width: 74px; }
+  #view { position: relative; min-height: 0; overflow: hidden; background: #0e0c0b; }
+  #view svg { width: 100%; height: 100%; display: block; touch-action: none; user-select: none; cursor: grab; }
+  #view svg.dragging { cursor: grabbing; }
+  #pic { cursor: move; }
+  .grid { stroke: rgba(255,255,255,.10); vector-effect: non-scaling-stroke; }
+  .centre { fill: none; stroke: #ff4d3a; stroke-width: 2; vector-effect: non-scaling-stroke; }
+  .ent { fill: #e9c46a; stroke: #14110f; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+  .vlab { font: 600 12px system-ui, sans-serif; fill: #fff; paint-order: stroke; stroke: rgba(0,0,0,.75); stroke-width: 3px; }
+  #msg { position: absolute; left: 12px; bottom: 12px; background: rgba(20,17,15,.88); border: 1px solid var(--line);
+         border-radius: 6px; padding: 4px 10px; font-size: 13px; color: var(--muted); pointer-events: none; }
+  #empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); text-align: center; padding: 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  td { padding: 3px 4px; border-top: 1px solid var(--line); vertical-align: top; }
+  td:last-child { color: var(--muted); text-align: right; white-space: nowrap; }
+  kbd { background: var(--panel-3); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; font-size: 11px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Rust<span>Snipe</span></h1>
+  <span class="sub">Line up your monument cut-outs</span>
+  <div class="spacer"></div>
+  <a class="btn" href="/">Back to search</a>
+</header>
+<main>
+  <aside>
+    <section>
+      <h2>Pictures</h2>
+      <div id="drop">Drop transparent PNG cut-outs here<br>or click to choose</div>
+      <input type="file" id="files" accept="image/png,image/webp" multiple hidden>
+      <div id="pics"></div>
+    </section>
+
+    <section id="setup" hidden>
+      <h2>This picture</h2>
+      <label class="f" for="type">Monument</label>
+      <select id="type"></select>
+      <label class="f" for="map">Map it was taken on (rustmaps link)</label>
+      <input type="text" id="map" placeholder="blank = any downloaded map">
+      <label class="f" for="heading">Compass heading when you took it</label>
+      <input type="number" id="heading" min="0" max="360" step="0.5" placeholder="e.g. 320">
+      <p class="hint">The number at the top of the screen. With it, the rotation starts out right.</p>
+    </section>
+
+    <section id="align" hidden>
+      <h2>Line it up</h2>
+      <label class="f">Rotation (degrees clockwise)</label>
+      <div class="ctl"><input type="range" id="rotR" min="-180" max="180" step="0.5"><input type="number" id="rotN" step="0.5"></div>
+      <label class="f">Size (<span id="sizeM">–</span> m across)</label>
+      <div class="ctl"><input type="range" id="scaleR" min="-1" max="1" step="0.002"><input type="number" id="scaleN" step="0.01" title="picture pixels per metre"></div>
+      <label class="f">Picture opacity</label>
+      <input type="range" id="opacity" min="0.1" max="1" step="0.05" value="0.7">
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="auto" type="button">Auto-match</button>
+        <button class="btn" id="reset" type="button">Start over</button>
+      </div>
+      <p class="hint">Drag the picture to move it, drag the map to pan, scroll to zoom.
+        <kbd>Shift</kbd>+scroll turns it, <kbd>Alt</kbd>+scroll resizes it. Arrow keys nudge it (<kbd>Shift</kbd> = 10 m),
+        <kbd>Q</kbd>/<kbd>E</kbd> turn, <kbd>+</kbd>/<kbd>−</kbd> resize, hold <kbd>Space</kbd> to look underneath.</p>
+      <p class="hint" id="tunnelHint" hidden>The yellow dot is where this monument's train-tunnel entrance (the
+        FT building) stands. Put the picture's FT building on it.</p>
+    </section>
+
+    <section id="saveBox" hidden>
+      <button class="btn main" id="save" type="button">Save cut-out</button>
+      <p class="hint" id="saveMsg"></p>
+    </section>
+
+    <section>
+      <h2>Saved cut-outs</h2>
+      <table id="saved"></table>
+    </section>
+  </aside>
+
+  <div id="view">
+    <svg id="svg" xmlns="http://www.w3.org/2000/svg">
+      <g id="ref"></g>
+      <g id="picLayer"><g id="pic"><image id="picImg"/></g></g>
+      <g id="marks"></g>
+    </svg>
+    <div id="empty">Add a picture on the left to start.</div>
+    <div id="msg" hidden></div>
+  </div>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const SVGNS = "http://www.w3.org/2000/svg";
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store = { get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } },
+                set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+
+let TYPES = [], PICS = [], CUR = null, REF = null, VIEW = { x: -300, y: -300, w: 600, h: 600 };
+
+/* ------------------------------------------------------------ setup */
+async function init() {
+  const meta = await (await fetch("/api/meta")).json();
+  const order = { "Large monuments": 0, "Small monuments": 1 };
+  TYPES = meta.types.slice().sort((a, b) => (order[a.cat] ?? 2) - (order[b.cat] ?? 2) || a.name.localeCompare(b.name));
+  let html = "", cat = null;
+  for (const t of TYPES) {
+    if (t.cat !== cat) { if (cat) html += "</optgroup>"; cat = t.cat; html += `<optgroup label="${esc(cat)}">`; }
+    html += `<option>${esc(t.name)}</option>`;
+  }
+  $("#type").innerHTML = html + "</optgroup>";
+  $("#map").value = store.get("cut.map", "");
+  loadSaved();
+}
+async function loadSaved() {
+  const log = await (await fetch("/api/cutout/list")).json();
+  const rows = Object.values(log).sort((a, b) => a.monument.localeCompare(b.monument));
+  $("#saved").innerHTML = rows.length ? rows.map(r => `<tr><td>${esc(r.monument)}<br><span class="hint">${esc(r.source)} · ${r.method}</span></td>
+      <td>${r.size_m} m<br>${esc(String(r.saved).slice(5, 16))}</td></tr>`).join("") : `<tr><td class="hint">None yet.</td><td></td></tr>`;
+}
+
+/* ------------------------------------------------------------ pictures */
+const guessType = name => {
+  const f = name.toLowerCase().replace(/[^a-z]/g, "");
+  let best = "", len = 0;
+  for (const t of TYPES) { const k = t.name.toLowerCase().replace(/[^a-z]/g, ""); if (f.includes(k) && k.length > len) { best = t.name; len = k.length; } }
+  return best;
+};
+const guessHeading = name => { const m = name.replace(/\.\w+$/, "").match(/(\d{1,3}(?:\.\d+)?)/); return m ? Number(m[1]) % 360 : null; };
+
+function addFiles(files) {
+  for (const file of files) {
+    if (!/image\/(png|webp)/.test(file.type)) continue;
+    const saved = store.get("cut.p." + file.name, null);
+    const p = { file, name: file.name, url: URL.createObjectURL(file), w: 0, h: 0, data: null, saved: false,
+                type: saved?.type || guessType(file.name), map: saved?.map ?? $("#map").value,
+                heading: saved?.heading ?? guessHeading(file.name), t: saved?.t || null, method: "manual", score: null };
+    const im = new Image();
+    im.onload = () => { p.w = im.naturalWidth; p.h = im.naturalHeight; if (CUR === p) open(p); };
+    im.src = p.url;
+    PICS.push(p);
+  }
+  renderPics();
+  if (!CUR && PICS.length) open(PICS[0]);
+}
+function renderPics() {
+  $("#pics").innerHTML = PICS.map((p, i) => `<div class="pic${p === CUR ? " sel" : ""}" data-i="${i}"><img src="${p.url}" alt="">
+      <div class="n">${esc(p.name)}<small>${esc(p.type || "pick the monument")}</small></div>
+      <span class="st ${p.saved ? "ok" : ""}">${p.saved ? "saved" : ""}</span></div>`).join("");
+  $("#pics").querySelectorAll(".pic").forEach(el => el.onclick = () => open(PICS[Number(el.dataset.i)]));
+}
+$("#drop").onclick = () => $("#files").click();
+$("#files").onchange = e => { addFiles(e.target.files); e.target.value = ""; };
+["dragenter", "dragover"].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); $("#drop").classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); $("#drop").classList.remove("over"); }));
+document.addEventListener("drop", e => addFiles(e.dataTransfer.files));
+
+/* ------------------------------------------------------------ one picture */
+function remember(p) { store.set("cut.p." + p.name, { type: p.type, map: p.map, heading: p.heading, t: p.t }); }
+
+async function open(p) {
+  CUR = p; renderPics();
+  for (const id of ["#setup", "#align", "#saveBox"]) $(id).hidden = false;
+  $("#empty").hidden = true;
+  $("#type").value = p.type || ""; $("#map").value = p.map || ""; $("#heading").value = p.heading ?? "";
+  $("#saveMsg").textContent = "";
+  $("#picImg").setAttribute("href", p.url);
+  if (!p.w) return;                                     // size not known yet: open() runs again on load
+  await loadRef();
+}
+async function loadRef() {
+  const p = CUR;
+  REF = null; $("#ref").innerHTML = ""; $("#marks").innerHTML = "";
+  if (!p.type) { msg("Pick the monument on the left."); drawPic(); return; }
+  msg("Loading the map around it…");
+  const q = `map=${encodeURIComponent(p.map || "")}&type=${encodeURIComponent(p.type)}`;
+  let info;
+  try {
+    const r = await fetch("/api/cutout/info?" + q); info = await r.json();
+    if (info.error) throw new Error(info.error);
+  } catch (e) { msg(e.message, true); return; }
+  if (CUR !== p) return;
+  REF = info;
+  const h = info.half;
+  $("#ref").innerHTML = `<image href="/api/cutout/ref?${q}" x="${-h}" y="${-h}" width="${2 * h}" height="${2 * h}"/>`;
+  drawMarks();
+  if (!p.t) startOver(false);
+  fitView(); drawPic();
+  msg(`${p.type} at ${info.grid} on map ${info.map.slice(0, 8)} (seed ${info.seed})` + (info.tunnel ? " · turned so the train-tunnel entrance is at the top" : " · north is up"));
+}
+function drawMarks() {
+  const h = REF.half; let s = "";
+  for (let v = -Math.floor(h / 50) * 50; v <= h; v += 50) {
+    s += `<line class="grid" x1="${v}" y1="${-h}" x2="${v}" y2="${h}"/><line class="grid" y1="${v}" x1="${-h}" y2="${v}" x2="${h}"/>`;
+  }
+  s += `<circle class="centre" r="6"/><line class="centre" x1="-14" x2="14"/><line class="centre" y1="-14" y2="14"/>`;
+  if (REF.tunnel && REF.entrance_m) {
+    s += `<circle class="ent" cy="${-REF.entrance_m}" r="5"/><text class="vlab" x="9" y="${-REF.entrance_m + 4}">FT entrance</text>`;
+  }
+  $("#marks").innerHTML = s;
+  $("#tunnelHint").hidden = !(REF.tunnel && REF.entrance_m);
+}
+function predicted() {
+  const p = CUR;
+  if (p.heading == null || p.heading === "") return 0;
+  if (REF?.tunnel) return p.map ? REF.facing - p.heading : 0;     // theta: degrees anticlockwise
+  return p.map ? -p.heading : 0;
+}
+function startOver(redraw = true) {
+  const p = CUR, L = Math.max(p.w, p.h);
+  p.t = { theta: norm(predicted()), s: L / (1.6 * (REF?.radius || 150)), tx: 0, ty: 0 };
+  p.method = "manual"; p.score = null; remember(p);
+  if (redraw) drawPic();
+}
+const norm = a => ((a % 360) + 360) % 360;
+const sgn180 = a => { a = norm(a); return a > 180 ? a - 360 : a; };
+
+function drawPic() {
+  const p = CUR, t = p?.t;
+  if (!p || !t) { $("#pic").setAttribute("visibility", "hidden"); return; }
+  $("#pic").setAttribute("visibility", "visible");
+  const img = $("#picImg");
+  img.setAttribute("width", p.w); img.setAttribute("height", p.h);
+  img.setAttribute("x", -p.w / 2); img.setAttribute("y", -p.h / 2);
+  $("#pic").setAttribute("transform", `translate(${t.tx},${t.ty}) rotate(${-t.theta}) scale(${1 / t.s})`);
+  $("#pic").style.opacity = $("#opacity").value;
+  const cw = sgn180(-t.theta);
+  $("#rotR").value = cw; $("#rotN").value = Math.round(cw * 10) / 10;
+  $("#scaleN").value = t.s.toFixed(3);
+  const base = Math.max(p.w, p.h) / (1.6 * (REF?.radius || 150));
+  $("#scaleR").value = Math.log(t.s / base) / Math.log(3);
+  $("#sizeM").textContent = Math.round(Math.max(p.w, p.h) / t.s);
+}
+function changed() { CUR.method = "manual"; remember(CUR); drawPic(); }
+
+/* ------------------------------------------------------------ fields */
+$("#type").onchange = e => { CUR.type = e.target.value; CUR.t = null; remember(CUR); renderPics(); loadRef(); };
+$("#map").onchange = e => { CUR.map = e.target.value.trim(); store.set("cut.map", CUR.map); CUR.t = null; remember(CUR); loadRef(); };
+$("#heading").onchange = e => { CUR.heading = e.target.value === "" ? null : Number(e.target.value); remember(CUR); if (CUR.t && REF) { CUR.t.theta = norm(predicted()); changed(); } };
+$("#rotR").oninput = e => { CUR.t.theta = norm(-Number(e.target.value)); changed(); };
+$("#rotN").onchange = e => { CUR.t.theta = norm(-Number(e.target.value)); changed(); };
+$("#scaleR").oninput = e => { const base = Math.max(CUR.w, CUR.h) / (1.6 * (REF?.radius || 150)); CUR.t.s = base * Math.pow(3, Number(e.target.value)); changed(); };
+$("#scaleN").onchange = e => { const v = Number(e.target.value); if (v > 0) { CUR.t.s = v; changed(); } };
+$("#opacity").oninput = () => drawPic();
+$("#reset").onclick = () => startOver();
+
+/* ------------------------------------------------------------ view: pan / zoom / drag */
+const svg = $("#svg");
+function setView() { svg.setAttribute("viewBox", `${VIEW.x} ${VIEW.y} ${VIEW.w} ${VIEW.h}`); }
+function fitView() {
+  const h = REF ? REF.half : 300, r = svg.getBoundingClientRect(), a = r.width / Math.max(1, r.height);
+  VIEW = a >= 1 ? { x: -h * a, y: -h, w: 2 * h * a, h: 2 * h } : { x: -h, y: -h / a, w: 2 * h, h: 2 * h / a };
+  setView();
+}
+const toSvg = e => { const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); };
+let drag = null;
+svg.addEventListener("pointerdown", e => {
+  if (!CUR?.t) return;
+  const onPic = e.target.closest("#pic");
+  drag = { mode: onPic ? "move" : "pan", start: toSvg(e), tx: CUR.t.tx, ty: CUR.t.ty, view: { ...VIEW }, cx: e.clientX, cy: e.clientY };
+  try { svg.setPointerCapture(e.pointerId); } catch (err) { /* synthetic pointer */ }
+  svg.classList.add("dragging");
+});
+svg.addEventListener("pointermove", e => {
+  if (!drag) return;
+  if (drag.mode === "move") {
+    const q = toSvg(e);
+    CUR.t.tx = drag.tx + q.x - drag.start.x; CUR.t.ty = drag.ty + q.y - drag.start.y; drawPic();
+  } else {
+    const k = VIEW.w / svg.getBoundingClientRect().width;
+    VIEW.x = drag.view.x - (e.clientX - drag.cx) * k; VIEW.y = drag.view.y - (e.clientY - drag.cy) * k; setView();
+  }
+});
+const endDrag = () => { if (drag?.mode === "move") changed(); drag = null; svg.classList.remove("dragging"); };
+svg.addEventListener("pointerup", endDrag); svg.addEventListener("pointercancel", endDrag);
+svg.addEventListener("wheel", e => {
+  if (!CUR?.t) return;
+  e.preventDefault();
+  const d = e.deltaY || e.deltaX;               // with Shift, browsers scroll sideways (deltaX)
+  if (!d) return;
+  const step = d > 0 ? 1 : -1;
+  if (e.shiftKey) { CUR.t.theta = norm(CUR.t.theta - step * (e.ctrlKey ? 0.1 : 0.5)); changed(); return; }
+  if (e.altKey) { CUR.t.s *= Math.pow(1.01, step); changed(); return; }
+  const q = toSvg(e), f = Math.pow(1.15, step);
+  VIEW.x = q.x - (q.x - VIEW.x) * f; VIEW.y = q.y - (q.y - VIEW.y) * f; VIEW.w *= f; VIEW.h *= f; setView();
+}, { passive: false });
+window.addEventListener("resize", () => REF && fitView());
+
+document.addEventListener("keydown", e => {
+  if (!CUR?.t || e.target.closest("input, select, textarea")) return;
+  const big = e.shiftKey ? 10 : 1, t = CUR.t;
+  const moves = { ArrowLeft: [-big, 0], ArrowRight: [big, 0], ArrowUp: [0, -big], ArrowDown: [0, big] };
+  if (moves[e.key]) { t.tx += moves[e.key][0]; t.ty += moves[e.key][1]; }
+  else if (e.key === "q" || e.key === "Q") t.theta = norm(t.theta + (e.shiftKey ? 5 : 0.5));
+  else if (e.key === "e" || e.key === "E") t.theta = norm(t.theta - (e.shiftKey ? 5 : 0.5));
+  else if (e.key === "+" || e.key === "=") t.s *= 0.99;
+  else if (e.key === "-" || e.key === "_") t.s *= 1.01;
+  else if (e.key === " ") { e.preventDefault(); $("#pic").style.opacity = 0; return; }
+  else return;
+  e.preventDefault(); changed();
+});
+document.addEventListener("keyup", e => { if (e.key === " ") $("#pic").style.opacity = $("#opacity").value; });
+
+/* ------------------------------------------------------------ auto-match and save */
+function msg(text, bad) { const m = $("#msg"); m.hidden = !text; m.textContent = text || ""; m.classList.toggle("err", !!bad); }
+function dataUrl(p) {
+  if (p.data) return Promise.resolve(p.data);
+  return new Promise((ok, fail) => { const r = new FileReader(); r.onload = () => ok(p.data = r.result); r.onerror = fail; r.readAsDataURL(p.file); });
+}
+// picture <-> view: a picture pixel p lands at T + rot(-theta) (p - centre) / s
+function centrePx(p) {
+  const t = p.t, a = t.theta * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+  return { cx: p.w / 2 + t.s * (-t.tx * c + t.ty * s), cy: p.h / 2 + t.s * (-t.tx * s - t.ty * c) };
+}
+function fromFit(p, f) {
+  const a = f.theta * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+  const dx = (f.cx - p.w / 2) / f.s, dy = (f.cy - p.h / 2) / f.s;
+  p.t = { theta: norm(f.theta), s: f.s, tx: -(dx * c + dy * s), ty: -(-dx * s + dy * c) };
+}
+$("#auto").onclick = async () => {
+  const p = CUR; if (!p?.type) return;
+  const b = $("#auto"); b.disabled = true; b.textContent = "Matching…";
+  msg("Matching against the map: this takes 10–60 seconds…");
+  try {
+    const r = await fetch("/api/cutout/fit", { method: "POST", body: JSON.stringify({
+      type: p.type, map: p.map || null, heading: p.heading ?? null, image: await dataUrl(p) }) });
+    const f = await r.json();
+    if (f.error) throw new Error(f.error);
+    fromFit(p, f); p.method = "auto"; p.score = f.score; remember(p);
+    if (CUR === p) { drawPic(); msg(`Auto-match done (score ${f.score.toFixed(2)}). Check it and fix it by hand if needed.`); }
+  } catch (e) { msg("Auto-match failed: " + e.message, true); }
+  finally { b.disabled = false; b.textContent = "Auto-match"; }
+};
+$("#save").onclick = async () => {
+  const p = CUR; if (!p?.t || !p.type) return;
+  const b = $("#save"); b.disabled = true; b.textContent = "Saving…";
+  try {
+    const { cx, cy } = centrePx(p);
+    const r = await fetch("/api/cutout/save", { method: "POST", body: JSON.stringify({
+      type: p.type, map: p.map || null, heading: p.heading ?? null, source: p.name, image: await dataUrl(p),
+      theta: p.t.theta, s: p.t.s, cx, cy, method: p.method, score: p.score }) });
+    const res = await r.json();
+    if (res.error) throw new Error(res.error);
+    p.saved = true; renderPics(); loadSaved();
+    $("#saveMsg").innerHTML = `<span class="ok">Saved ${esc(res.file)}</span> (${res.size_m} m across). Reload the search page to see it on the sketch.`;
+  } catch (e) { $("#saveMsg").innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+  finally { b.disabled = false; b.textContent = "Save cut-out"; }
+};
+
+init();
+</script>
+</body>
+</html>
