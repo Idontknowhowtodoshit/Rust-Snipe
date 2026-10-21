@@ -40,6 +40,9 @@
   .chip i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
   .chip.in { border-color: var(--good); background: #1f3319; }
   .chip.out { border-color: var(--bad); background: #3a1a14; text-decoration: line-through; }
+  .chip small { color: var(--muted); font-size: 11px; }
+  .rg { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .4px; color: var(--muted);
+        border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; margin-right: 6px; vertical-align: 1px; }
   .item { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px; margin-bottom: 8px; }
   .item.absent { border-color: #5a2c24; }
   .item .head { display: flex; align-items: center; gap: 8px; }
@@ -102,14 +105,38 @@
   #preview .servers { margin: 8px 0 10px; }
   #preview .servers div { display: flex; align-items: center; gap: 8px; padding: 3px 0; flex-wrap: wrap; }
   #preview a { color: var(--accent-2); }
-  .mapbox { position: relative; max-width: 900px; overflow: hidden; border-radius: var(--radius); border: 1px solid var(--line); background: #0f1a22; }
-  .mapbox img { width: 100%; aspect-ratio: 1; display: block; cursor: grab; user-select: none; -webkit-user-drag: none; touch-action: none; }
-  .mapbox img:active { cursor: grabbing; }
-  .mapbox .tools { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; }
+  .mapbox { position: relative; max-width: 900px; overflow: hidden; border-radius: var(--radius); border: 1px solid var(--line); background: #22475e; }
+  .mapbox svg { width: 100%; aspect-ratio: 1; display: block; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .mapbox svg:active { cursor: grabbing; }
+  .mapbox .gridline { fill: none; stroke: rgba(255,255,255,.11); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .mapbox .gl { font: 10px system-ui, -apple-system, "Segoe UI", sans-serif; fill: rgba(255,255,255,.42); pointer-events: none; }
+  .mapbox .hitline { stroke: #7fd39a; stroke-width: 2.5; vector-effect: non-scaling-stroke; opacity: .9; }
+  .mapbox .badline { stroke: #e2725b; stroke-width: 2.5; stroke-dasharray: 7 5; vector-effect: non-scaling-stroke; }
+  .mapbox .cone { fill: rgba(233,196,106,.09); }
+  .mapbox .coneline { stroke: #e9c46a; stroke-width: 1.5; vector-effect: non-scaling-stroke; opacity: .8; }
+  .mapbox .anchor { fill: none; stroke: #ff7b5c; stroke-width: 3; }
+  .mapbox .you { fill: #7fd39a; stroke: #14110f; stroke-width: 2; }
+  .mapbox .youtxt { font: 600 12px system-ui, sans-serif; fill: #c9f0d3; paint-order: stroke; stroke: rgba(0,0,0,.6); stroke-width: 3px; }
+  .mapbox .obj { cursor: pointer; }
+  .mapbox .obj .dot { stroke: rgba(15,12,10,.75); stroke-width: 1.5; }
+  .mapbox .obj rect { fill: rgba(24,20,17,.74); stroke: rgba(255,255,255,.06); }
+  .mapbox .obj text { font: 500 11px system-ui, -apple-system, "Segoe UI", sans-serif; fill: #e9e2d6; letter-spacing: .2px; }
+  .mapbox .obj.big text { font-weight: 600; fill: #f3ece2; }
+  .mapbox .obj:hover rect { fill: rgba(44,37,31,.95); stroke: rgba(232,100,63,.55); }
+  .mapbox .obj.on rect { fill: rgba(58,30,23,.95); stroke: rgba(232,100,63,.85); }
+  .mapbox .tools { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
   .mapbox .tools button { background: rgba(20,17,15,.85); border: 1px solid var(--line); border-radius: 6px; color: var(--text);
                           min-width: 32px; height: 30px; cursor: pointer; font-size: 14px; padding: 0 8px; }
   .mapbox .tools button:hover { border-color: var(--muted); }
-  .mapbox .zoominfo { position: absolute; bottom: 8px; left: 8px; background: rgba(20,17,15,.85); border-radius: 4px; padding: 1px 6px; font-size: 12px; color: var(--muted); }
+  .mapbox .tools button.off { color: var(--muted); text-decoration: line-through; }
+  .mapbox .zoominfo { position: absolute; bottom: 8px; left: 8px; background: rgba(20,17,15,.85); border-radius: 4px; padding: 1px 6px; font-size: 12px; color: var(--muted); pointer-events: none; }
+  .mpop { position: absolute; z-index: 3; width: 250px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+          box-shadow: 0 8px 28px rgba(0,0,0,.45); overflow: hidden; }
+  .mpop .pimg { width: 100%; aspect-ratio: 16/10; background: var(--panel-3) center/cover no-repeat; }
+  .mpop .pbody { padding: 8px 10px 10px; position: relative; }
+  .mpop .pbody b { display: block; padding-right: 20px; }
+  .mpop .pbtns { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .mpop .x { position: absolute; top: 4px; right: 4px; }
   code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
   .err { color: #ff8f7a; }
 
@@ -185,7 +212,9 @@
 
     <section>
       <h2>Servers</h2>
+      <div class="chips" id="regions" style="margin-bottom:8px"></div>
       <input type="text" id="org" class="w100" placeholder="server name contains… (blank = all)">
+      <p class="hint">Region from the server name, else from where its IP is. None selected = all regions.</p>
     </section>
 
     <button class="go" id="go" type="submit">Search all maps</button>
@@ -220,7 +249,7 @@ const sq = m => Math.round(m / SQ * 2) / 2;
 
 function blank() {
   return { at: { type: "", facing: null }, biomeIn: [], biomeOut: [], lms: [], abs: [],
-           view: { heading: null, atB: null, lmB: null, maxD: null }, org: "", includeCustom: false };
+           view: { heading: null, atB: null, lmB: null, maxD: null }, org: "", regions: [], includeCustom: false };
 }
 const newLm = (o = {}) => ({ id: uid++, type: "", bearing: null, tol: 30, dist: 5, biome: "", facing: null, ...o });
 const newAbs = (o = {}) => ({ id: uid++, type: "", bearing: null, tol: 45, dist: 7, ...o });
@@ -238,6 +267,7 @@ async function loadMeta() {
     from rustmaps (about 10 minutes, progress at the top right). Search works as soon as that's done; after that it only
     downloads maps of servers that wiped.`;
   else if (!LAST) $("#summary").textContent = "Describe what you see and press search.";
+  renderRegions();
 }
 /* ---------------------------------------------------------------- wipe sync */
 const ago = t => { const h = (Date.now() / 1000 - t) / 3600; return h < 1 ? `${Math.max(1, Math.round(h * 60))} min ago` : h < 48 ? `${Math.round(h)} h ago` : `${Math.round(h / 24)} days ago`; };
@@ -334,6 +364,7 @@ function renderAll() {
   $("#heading").value = ST.view.heading ?? ""; $("#atB").value = ST.view.atB ?? ""; $("#lmB").value = ST.view.lmB ?? ""; $("#maxD").value = ST.view.maxD ?? "";
   $("#viewBox").open = ST.view.atB != null;
   $("#org").value = ST.org || "";
+  renderRegions();
   drawBoard();
 }
 function renderAt() {
@@ -351,6 +382,18 @@ function renderBiomes() {
     return `<span class="chip ${c}" data-b="${b}" title="click: must be → must NOT be → any"><i style="background:${BCOL[b]}"></i>${b}</span>`;
   }).join("");
 }
+const REGION_NAMES = { EU: "Europe", NA: "North America", SA: "South America", OCE: "Australia / NZ", Asia: "Asia", Africa: "Africa" };
+function renderRegions() {
+  const n = META.regions || {};
+  $("#regions").innerHTML = Object.keys(REGION_NAMES).filter(r => n[r] || ST.regions.includes(r)).map(r =>
+    `<span class="chip ${ST.regions.includes(r) ? "in" : ""}" data-r="${r}" title="${REGION_NAMES[r]}: ${n[r] || 0} servers">${r} <small>${n[r] || 0}</small></span>`).join("");
+}
+$("#regions").onclick = e => {
+  const c = e.target.closest(".chip"); if (!c) return;
+  const r = c.dataset.r;
+  ST.regions = ST.regions.includes(r) ? ST.regions.filter(x => x !== r) : [...ST.regions, r];
+  renderRegions(); save();
+};
 $("#biomes").onclick = e => {
   const c = e.target.closest(".chip"); if (!c) return;
   const b = c.dataset.b;
@@ -532,7 +575,7 @@ function collect() {
   const v = ST.view;
   if (v.heading != null) { clues.heading = v.heading; clues.hfov = 107; }
   const view = (v.atB != null && v.lmB != null) ? { at_bearing: v.atB, lm_bearing: v.lmB, max_dist: v.maxD == null ? null : v.maxD * SQ } : null;
-  return { clues, view, org: ST.org.trim() };
+  return { clues, view, org: ST.org.trim(), regions: ST.regions };
 }
 $("#form").onsubmit = e => { e.preventDefault(); search(); };
 async function search() {
@@ -551,9 +594,10 @@ async function search() {
 const scoreColor = s => s >= .9 ? "var(--good)" : s >= .7 ? "var(--warn)" : "var(--bad)";
 function renderList() {
   const { data, q } = LAST;
-  $("#summary").textContent = data.total ? `Top ${data.results.length} of ${data.total} candidates` : "No candidates: no map has that monument.";
+  $("#summary").textContent = data.total ? `Top ${data.results.length} of ${data.total} candidates` : (LAST.q.regions.length ? `No candidates: no map in ${LAST.q.regions.join(" / ")} has that monument.` : "No candidates: no map has that monument.");
   $("#list").innerHTML = data.results.map((r, i) => {
     const srv = r.servers.length ? r.servers[0].name + (r.servers.length > 1 ? `  (+${r.servers.length - 1})` : "") : `map ${r.map8} (no tracked server)`;
+    const rg = r.servers.length ? `<span class="rg">${[...new Set(r.servers.map(s => s.region))].join(" ")}</span>` : "";
     const d = r.detail;
     let tags = d.facing != null ? `<span class="tag">tunnel ${dirName(d.facing)} (${d.facing}°)</span>` : (q.clues.at_facing != null ? `<span class="tag miss">rotation unknown</span>` : "");
     tags += (d.landmarks || []).map((v, j) => v
@@ -566,7 +610,7 @@ function renderList() {
     return `<div class="card${SEL === i ? " sel" : ""}" data-i="${i}">
       <div class="top"><span class="score" style="color:${scoreColor(r.score)}">${r.score.toFixed(2)}</span>
         <div class="bar"><b style="width:${r.score * 100}%;background:${scoreColor(r.score)}"></b></div></div>
-      <div class="srv" title="${esc(srv)}">${esc(srv)}</div>
+      <div class="srv" title="${esc(srv)}">${rg}${esc(srv)}</div>
       <div class="meta">${esc(r.type)} · grid ${r.grid} · seed ${r.seed} · ${r.size} m</div>
       <div class="tags">${tags}${you}</div>${mix}</div>`;
   }).join("");
@@ -574,12 +618,25 @@ function renderList() {
   if (data.results.length) select(0);
 }
 
-/* ---------------------------------------------------------------- preview map with zoom / pan */
+/* ---------------------------------------------------------------- live map (pans / zooms in the browser) */
+// SVG in world metres: svg x = world x (east), svg y = -world y (north is up).
+const CATCOL = { "Large monuments": "#e8875f", "Small monuments": "#d9a85b", "Rocks & cliffs": "#b9ab9b", "Power lines": "#d6c46d",
+                 "Water, ice & terrain": "#82b4d6", "Tunnel entrances": "#a597d8", "Caves": "#93bf8c", "Other": "#cfc6ba" };
+const OBJ = {};                                   // map8 -> {size, objects}, fetched once per map
+const SVGNS = "http://www.w3.org/2000/svg";
+const svgEl = (tag, attrs = {}, parent) => {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+};
+const bearingTo = (a, b) => Math.round(norm(Math.atan2(b[0] - a[0], b[1] - a[1]) * 180 / Math.PI));
+
 function select(i) {
   SEL = i;
   document.querySelectorAll(".card").forEach(c => c.classList.toggle("sel", Number(c.dataset.i) === i));
   const r = LAST.data.results[i];
-  const servers = r.servers.length ? r.servers.map(s => `<div><span>${esc(s.name)}</span>
+  const servers = r.servers.length ? r.servers.map(s => `<div><span><span class="rg">${s.region}</span>${esc(s.name)}</span>
       <code>${s.ip}:${s.gamePort}</code><button class="btn" type="button" data-c="client.connect ${s.ip}:${s.gamePort}">copy connect</button>
       <span class="meta">wiped ${String(s.lastWipeUtc || "").slice(0, 10)}</span></div>`).join("") : `<div class="meta">No tracked server runs this map right now.</div>`;
   const you = r.viewer ? `<p class="meta">Estimated position: <b>${r.viewer.grid}</b>, ${r.viewer.biome};
@@ -587,62 +644,277 @@ function select(i) {
   $("#preview").innerHTML = `<h3>${esc(r.type)} · grid ${r.grid}</h3>
     <div class="meta">score ${r.score.toFixed(2)} · seed ${r.seed} · size ${r.size} · <a href="https://rustmaps.com/map/${r.map}" target="_blank" rel="noopener">open on rustmaps</a></div>
     <div class="servers">${servers}</div>${you}
-    <div class="mapbox"><img id="img" alt="map around the match" draggable="false">
+    <div class="mapbox" id="mapbox"><svg id="mapsvg" aria-label="map around the match"></svg>
       <div class="tools"><button type="button" data-z="in" title="zoom in">+</button><button type="button" data-z="out" title="zoom out">−</button>
-        <button type="button" data-z="fit" title="back to the match">match</button><button type="button" data-z="all" title="whole map">whole map</button></div>
-      <div class="zoominfo" id="zinfo"></div></div>
-    <p class="hint">Scroll to zoom, drag to move.</p>`;
+        <button type="button" data-z="fit" title="back to the match">match</button><button type="button" data-z="all" title="whole map">whole map</button>
+        <button type="button" data-z="names" title="show or hide names">names</button></div>
+      <div class="zoominfo" id="zinfo"></div><div class="mpop" id="mpop" hidden></div></div>
+    <p class="hint">Scroll or pinch to zoom, drag to move. Click any name to see what it looks like and add it as a clue.</p>`;
   $("#preview").querySelectorAll("[data-c]").forEach(b => b.onclick = () => {
     navigator.clipboard?.writeText(b.dataset.c); b.textContent = "copied"; setTimeout(() => b.textContent = "copy connect", 1200); });
-  const v = r.viewer;
+  $("#preview").querySelectorAll("[data-z]").forEach(b => b.onclick = () => {
+    if (!VIEW || VIEW.i !== i) return;
+    const z = b.dataset.z;
+    if (z === "in") VIEW.span = Math.max(120, VIEW.span / 1.5);
+    if (z === "out") VIEW.span = Math.min(VIEW.max, VIEW.span * 1.5);
+    if (z === "fit") { VIEW.c = VIEW.fitC.slice(); VIEW.span = VIEW.fitS; }
+    if (z === "all") { VIEW.c = [0, 0]; VIEW.span = VIEW.max; }
+    if (z === "names") { VIEW.names = !VIEW.names; b.classList.toggle("off", !VIEW.names); }
+    hidePop(); scheduleView();
+  });
+  openMap(r, i);
+}
+
+async function openMap(r, i) {
+  let data = OBJ[r.map8];
+  if (!data) {
+    try { data = OBJ[r.map8] = await (await fetch(`/api/objects?map8=${r.map8}`)).json(); }
+    catch (e) { $("#zinfo").textContent = "could not load the map"; return; }
+  }
+  if (SEL !== i) return;
+  const S = data.size, svg = $("#mapsvg"), v = r.viewer;
   const fitC = v ? [(r.x + v.x) / 2, (r.y + v.y) / 2] : [r.x, r.y];
   const fitS = v ? Math.max(700, Math.hypot(r.x - v.x, r.y - v.y) / 2 + 350) : 700;
-  VIEW = { r, i, c: fitC, span: fitS, fitC, fitS, max: r.size / 2 };
-  $("#preview").querySelectorAll("[data-z]").forEach(b => b.onclick = () => {
-    const z = b.dataset.z;
-    if (z === "in") VIEW.span = Math.max(150, VIEW.span / 1.5);
-    if (z === "out") VIEW.span = Math.min(VIEW.max, VIEW.span * 1.5);
-    if (z === "fit") { VIEW.c = VIEW.fitC; VIEW.span = VIEW.fitS; }
-    if (z === "all") { VIEW.c = [0, 0]; VIEW.span = VIEW.max; }
-    loadMap();
+  VIEW = { r, i, S, c: fitC.slice(), span: fitS, fitC, fitS, max: S / 2 + 150, names: true, tiles: new Map(), fixed: [], objs: [] };
+  svg.innerHTML = "";
+  svgEl("image", { href: `/api/mapimg?map8=${r.map8}`, x: -S / 2, y: -S / 2, width: S, height: S, preserveAspectRatio: "none" }, svg);
+  VIEW.gTiles = svgEl("g", {}, svg);
+  VIEW.gGrid = svgEl("g", {}, svg);
+  VIEW.gGridLab = svgEl("g", {}, svg);
+  VIEW.gOver = svgEl("g", {}, svg);
+  VIEW.gObj = svgEl("g", {}, svg);
+  VIEW.gFixed = svgEl("g", {}, svg);
+  drawGrid(); drawOverlay(); buildObjects(data.objects);
+  wireMap(svg);
+  applyView();
+}
+
+const mpp = () => 2 * VIEW.span / ($("#mapsvg")?.clientWidth || 900);      // metres per screen pixel
+
+function drawGrid() {
+  const { S } = VIEW, cells = Math.floor(S / SQ), cell = S / cells;
+  VIEW.cells = cells; VIEW.cell = cell;
+  let d = "";
+  for (let i = 0; i <= cells; i++) {
+    const t = -S / 2 + i * cell;
+    d += `M${t},${-S / 2}V${S / 2}M${-S / 2},${t}H${S / 2}`;
+  }
+  svgEl("path", { d, class: "gridline" }, VIEW.gGrid);
+}
+const colName = c => { let s = ""; c += 1; while (c) { const m = (c - 1) % 26; s = String.fromCharCode(65 + m) + s; c = Math.floor((c - 1) / 26); } return s; };
+
+// markers that keep their screen size: re-scaled on every view change
+function fixedAt(el, x, y) { VIEW.fixed.push({ el, x, y }); VIEW.gFixed.appendChild(el); return el; }
+
+function drawOverlay() {
+  const { r } = VIEW, d = r.detail || {}, clues = LAST.q.clues, A = [r.x, r.y], V = r.viewer ? [r.viewer.x, r.viewer.y] : A;
+  const line = (p, q, cls) => svgEl("line", { x1: p[0], y1: -p[1], x2: q[0], y2: -q[1], class: cls }, VIEW.gOver);
+  if (clues.heading != null) {
+    const half = (clues.hfov || 100) / 2, L = VIEW.S * 1.5;
+    const end = h => [V[0] + L * Math.sin(h * Math.PI / 180), V[1] + L * Math.cos(h * Math.PI / 180)];
+    const a = end(clues.heading - half), b = end(clues.heading + half);
+    svgEl("polygon", { points: `${V[0]},${-V[1]} ${a[0]},${-a[1]} ${b[0]},${-b[1]}`, class: "cone" }, VIEW.gOver);
+    line(V, a, "coneline"); line(V, b, "coneline");
+  }
+  (d.landmarks || []).forEach(info => info && line(A, info.pos, "hitline"));
+  (d.absent || []).forEach(info => info && line(A, info.pos, "badline"));
+  const ring = svgEl("g", {});
+  svgEl("circle", { r: 13, class: "anchor" }, ring);
+  fixedAt(ring, A[0], A[1]);
+  if (r.viewer) {
+    const g = svgEl("g", {});
+    svgEl("circle", { r: 7, class: "you" }, g);
+    const t = svgEl("text", { x: 11, y: 4, class: "youtxt" }, g); t.textContent = "you";
+    fixedAt(g, V[0], V[1]);
+  }
+}
+
+function buildObjects(objects) {
+  const { r } = VIEW;
+  for (const o of objects) {
+    const g = svgEl("g", { class: "obj" + (o.tier === 0 ? " big" : "") }, VIEW.gObj);
+    svgEl("circle", { r: o.tier === 0 ? 4.5 : 3.5, fill: CATCOL[o.cat] || CATCOL.Other, class: "dot" }, g);
+    const lab = svgEl("g", { class: "lab" }, g);
+    const rect = svgEl("rect", { x: 7, y: -9, height: 18, rx: 5 }, lab);
+    const t = svgEl("text", { x: 13, y: 4 }, lab);
+    t.textContent = o.t;
+    o.anchor = o.x === r.x && o.y === r.y;
+    if (o.anchor) g.classList.add("on");
+    VIEW.objs.push({ o, g, lab, rect, t, w: 0 });
+  }
+  // measure label widths once (they never change size on screen)
+  for (const it of VIEW.objs) {
+    it.w = (it.t.getComputedTextLength?.() || it.o.t.length * 6) + 12;
+    it.rect.setAttribute("width", it.w);
+  }
+  // draw order: important on top
+  VIEW.objs.sort((a, b) => b.o.tier - a.o.tier).forEach(it => VIEW.gObj.appendChild(it.g));
+}
+
+let viewQueued = false;
+function scheduleView() {
+  if (viewQueued) return;
+  viewQueued = true;
+  requestAnimationFrame(() => { viewQueued = false; applyView(); });
+}
+
+function applyView() {
+  if (!VIEW || !$("#mapsvg")) return;
+  const { S } = VIEW, lim = S / 2;
+  VIEW.span = Math.min(VIEW.max, Math.max(120, VIEW.span));
+  VIEW.c = [Math.max(-lim, Math.min(lim, VIEW.c[0])), Math.max(-lim, Math.min(lim, VIEW.c[1]))];
+  const [cx, cy] = VIEW.c, sp = VIEW.span, k = mpp();
+  $("#mapsvg").setAttribute("viewBox", `${cx - sp} ${-cy - sp} ${2 * sp} ${2 * sp}`);
+  for (const f of VIEW.fixed) f.el.setAttribute("transform", `translate(${f.x},${-f.y}) scale(${k})`);
+
+  // which names to show: big things always, small ones once zoomed in, never overlapping
+  const wide = 2 * sp;                                   // metres across the view
+  const tierMax = (k < 2.3 || wide <= 2400) ? 2 : (k < 5.5 || wide <= 5000) ? 1 : 0, W = wide / k, placed = [];
+  const order = VIEW.objs.slice().sort((a, b) => (b.o.anchor - a.o.anchor) || (a.o.tier - b.o.tier));
+  for (const it of order) {
+    const { o } = it, sx = (o.x - (cx - sp)) / k, sy = ((cy + sp) - o.y) / k;
+    const onScreen = sx > -40 && sx < W + 40 && sy > -20 && sy < W + 20;
+    const show = onScreen && (o.tier <= tierMax || o.anchor);
+    it.g.style.display = show ? "" : "none";
+    if (!show) continue;
+    it.g.setAttribute("transform", `translate(${o.x},${-o.y}) scale(${k})`);
+    let named = VIEW.names || o.anchor;
+    if (named) {
+      const box = [sx + 6, sy - 9, sx + 6 + it.w, sy + 9];
+      named = !placed.some(p => box[0] < p[2] && box[2] > p[0] && box[1] < p[3] && box[3] > p[1]);
+      if (named) placed.push(box);
+    }
+    it.lab.style.display = named ? "" : "none";
+  }
+
+  // grid square names (A0, B12, ...) once zoomed in far enough to read them
+  VIEW.gGridLab.innerHTML = "";
+  const cell = VIEW.cell;
+  if (k < 1.6) {
+    const c0 = Math.max(0, Math.floor((cx - sp + S / 2) / cell)), c1 = Math.min(VIEW.cells - 1, Math.floor((cx + sp + S / 2) / cell));
+    const r0 = Math.max(0, Math.floor((S / 2 - (cy + sp)) / cell)), r1 = Math.min(VIEW.cells - 1, Math.floor((S / 2 - (cy - sp)) / cell));
+    for (let c = c0; c <= c1; c++) for (let rr = r0; rr <= r1; rr++) {
+      const t = svgEl("text", { class: "gl", transform: `translate(${-S / 2 + c * cell},${-S / 2 + rr * cell}) scale(${k})`, x: 4, y: 12 }, VIEW.gGridLab);
+      t.textContent = colName(c) + rr;
+    }
+  }
+  updateTiles(k);
+  $("#zinfo").textContent = `view ≈ ${Math.max(1, Math.round(2 * sp / SQ))} squares wide`;
+  placePop();
+}
+
+// sharper rustmaps tiles once our 1440 px map image gets blurry (cached by the server, per map)
+function updateTiles(k) {
+  const { S, r } = VIEW, need = (window.devicePixelRatio || 1) / k;   // screen pixels per metre
+  let z = Math.max(-1, Math.min(2, Math.ceil(Math.log2(need))));
+  if (need <= 1440 / S * 1.15) z = null;
+  for (const [key, el] of VIEW.tiles) if (z === null || el._z > z) { el.remove(); VIEW.tiles.delete(key); }
+  if (z === null) return;
+  const m = 256 / 2 ** z, half = S / 2, [cx, cy] = VIEW.c, sp = VIEW.span;
+  const x0 = Math.max(cx - sp, -half), x1 = Math.min(cx + sp, half);
+  const y0 = Math.max(-cy - sp, -half), y1 = Math.min(-cy + sp, half);
+  for (let tx = Math.floor(x0 / m); tx * m < x1; tx++) for (let ty = Math.floor(y0 / m); ty * m < y1; ty++) {
+    const key = `${z}/${tx}/${ty}`;
+    if (VIEW.tiles.has(key)) continue;
+    const el = svgEl("image", { href: `/api/tile?map8=${r.map8}&z=${z}&x=${tx}&y=${ty}`, x: tx * m, y: ty * m,
+                                width: m * 1.004, height: m * 1.004, preserveAspectRatio: "none" }, VIEW.gTiles);
+    el._z = z;
+    el.addEventListener("error", () => el.remove());
+    VIEW.tiles.set(key, el);
+  }
+  if (VIEW.tiles.size > 400) {                  // forget tiles far off screen
+    for (const [key, el] of VIEW.tiles) {
+      const x = +el.getAttribute("x"), y = +el.getAttribute("y");
+      if (x > x1 + m || x + m < x0 - m || y > y1 + m || y + m < y0 - m) { el.remove(); VIEW.tiles.delete(key); }
+    }
+  }
+}
+
+function wireMap(svg) {
+  const pts = new Map();
+  let drag = null;
+  svg.addEventListener("pointerdown", e => {
+    try { svg.setPointerCapture(e.pointerId); } catch (err) { /* synthetic / already-released pointer */ }
+    if (e.isPrimary) pts.clear();               // a new gesture: forget pointers whose release we missed
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size === 1) drag = { x: e.clientX, y: e.clientY, c: VIEW.c.slice(), moved: false, target: e.target.closest(".obj") };
+    else if (pts.size === 2) {
+      const [a, b] = [...pts.values()];
+      drag = { pinch: Math.hypot(a.x - b.x, a.y - b.y) || 1, span: VIEW.span, moved: true };
+    }
   });
-  const img = $("#img");
-  img.addEventListener("wheel", e => {
+  svg.addEventListener("pointermove", e => {
+    if (!drag || !pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (drag.pinch) {
+      const [a, b] = [...pts.values()];
+      VIEW.span = drag.span * drag.pinch / (Math.hypot(a.x - b.x, a.y - b.y) || 1);
+      scheduleView(); return;
+    }
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.moved && Math.abs(dx) + Math.abs(dy) > 4) { drag.moved = true; hidePop(); }
+    if (drag.moved) { const k = mpp(); VIEW.c = [drag.c[0] - dx * k, drag.c[1] + dy * k]; scheduleView(); }
+  });
+  const end = (e, click) => {
+    pts.delete(e.pointerId);
+    if (pts.size) return;
+    if (click && drag && !drag.moved) drag.target ? showPop(drag.target) : hidePop();
+    drag = null;
+  };
+  svg.addEventListener("pointerup", e => end(e, true));
+  svg.addEventListener("pointercancel", e => end(e, false));
+  svg.addEventListener("wheel", e => {
     e.preventDefault();
-    const rect = img.getBoundingClientRect(), f = e.deltaY < 0 ? 1 / 1.25 : 1.25;
+    const rect = svg.getBoundingClientRect(), f = Math.exp(Math.max(-1, Math.min(1, e.deltaY / 300)));
     const mx = (e.clientX - rect.left) / rect.width * 2 - 1, my = (e.clientY - rect.top) / rect.height * 2 - 1;
-    const ns = Math.min(VIEW.max, Math.max(150, VIEW.span * f));
-    // keep the point under the cursor in place
-    VIEW.c = [VIEW.c[0] + mx * (VIEW.span - ns), VIEW.c[1] - my * (VIEW.span - ns)];
-    VIEW.span = ns; loadMap(true);
+    const ns = Math.min(VIEW.max, Math.max(120, VIEW.span * f));
+    VIEW.c = [VIEW.c[0] + mx * (VIEW.span - ns), VIEW.c[1] - my * (VIEW.span - ns)];   // keep the point under the cursor
+    VIEW.span = ns; scheduleView();
   }, { passive: false });
-  let pan = null;
-  img.addEventListener("pointerdown", e => { pan = { x: e.clientX, y: e.clientY, c: VIEW.c.slice() }; img.setPointerCapture(e.pointerId); });
-  img.addEventListener("pointermove", e => {
-    if (!pan) return;
-    const k = 2 * VIEW.span / img.getBoundingClientRect().width;
-    img.style.transform = `translate(${e.clientX - pan.x}px, ${e.clientY - pan.y}px)`;
-    VIEW._next = [pan.c[0] - (e.clientX - pan.x) * k, pan.c[1] + (e.clientY - pan.y) * k];
+}
+
+/* ---------------------------------------------------------------- click a name: what it looks like + add as clue */
+function showPop(g) {
+  const it = VIEW.objs.find(x => x.g === g);
+  if (!it) return;
+  VIEW.objs.forEach(x => x.g.classList.toggle("on", x === it || x.o.anchor));
+  const { o } = it, { r } = VIEW, info = TYPES[o.b], A = [r.x, r.y];
+  const src = info ? (info.photo || info.thumb || info.icon) : null;
+  const dist = Math.hypot(o.x - r.x, o.y - r.y), edge = Math.max(0, dist - (info?.radius || 0)), brg = bearingTo(A, [o.x, o.y]);
+  const where = o.anchor ? `this is the match` : `${sq(edge)} sq ${dirName(brg)} (${brg}°) of the ${esc(r.type)}`;
+  const pop = $("#mpop");
+  pop.innerHTML = (src ? `<div class="pimg" style="background-image:url('${esc(src)}')"></div>` : "") +
+    `<div class="pbody"><b>${esc(o.t)}</b><div class="meta">${esc(o.cat)} · grid ${o.g}</div><div class="meta">${where}</div>
+     ${o.anchor ? "" : `<div class="pbtns"><button class="btn" data-add="near">+ nearby clue</button><button class="btn" data-add="not">+ not nearby</button></div>`}
+     <button class="x" data-close title="close">×</button></div>`;
+  pop.hidden = false; VIEW.pop = o;
+  pop.querySelector("[data-close]").onclick = hidePop;
+  pop.querySelectorAll("[data-add]").forEach(b => b.onclick = () => {
+    const d = Math.max(0.5, Math.ceil(edge / SQ * 2) / 2 + 0.5);
+    if (b.dataset.add === "near") { ST.lms.push(newLm({ type: o.b, bearing: brg, dist: d, tol: 30 })); renderLms(); }
+    else { ST.abs.push(newAbs({ type: o.b, bearing: brg, dist: d, tol: 45 })); renderAbs(); }
+    changed();
+    b.textContent = "added ✓"; b.disabled = true;
   });
-  const endPan = () => { if (!pan) return; pan = null; if (VIEW._next) { VIEW.c = VIEW._next; VIEW._next = null; loadMap(); } };
-  img.addEventListener("pointerup", endPan); img.addEventListener("pointercancel", endPan);
-  loadMap();
+  placePop();
 }
-let mapTimer = null, mapSeq = 0;
-function loadMap(debounce) {
-  clearTimeout(mapTimer);
-  mapTimer = setTimeout(async () => {
-    const { r, i } = VIEW, seq = ++mapSeq, lim = VIEW.max;
-    VIEW.c = [Math.max(-lim, Math.min(lim, VIEW.c[0])), Math.max(-lim, Math.min(lim, VIEW.c[1]))];
-    $("#zinfo").textContent = `view ≈ ${Math.round(VIEW.span * 2 / SQ)} squares wide`;
-    const res = await fetch("/api/render", { method: "POST", body: JSON.stringify({
-      map8: r.map8, x: r.x, y: r.y, detail: r.detail, clues: LAST.q.clues, viewer: r.viewer, center: VIEW.c, span: VIEW.span, px: 900 }) });
-    if (SEL !== i || seq !== mapSeq || !res.ok) return;
-    const img = $("#img"), url = URL.createObjectURL(await res.blob());
-    img.onload = () => { img.style.transform = ""; };
-    img.src = url;
-  }, debounce ? 180 : 0);
+function placePop() {
+  const pop = $("#mpop"), o = VIEW?.pop;
+  if (!pop || pop.hidden || !o) return;
+  const box = $("#mapbox"), W = box.clientWidth, H = box.clientHeight, k = mpp();
+  const sx = (o.x - (VIEW.c[0] - VIEW.span)) / k, sy = ((VIEW.c[1] + VIEW.span) - o.y) / k;
+  const pw = pop.offsetWidth, ph = pop.offsetHeight;
+  let left = sx + 14, top = sy - ph / 2;
+  if (left + pw > W - 8) left = sx - pw - 14;
+  pop.style.left = Math.max(8, Math.min(W - pw - 8, left)) + "px";
+  pop.style.top = Math.max(8, Math.min(H - ph - 8, top)) + "px";
 }
+function hidePop() {
+  const pop = $("#mpop");
+  if (pop) pop.hidden = true;
+  if (VIEW) { VIEW.pop = null; VIEW.objs?.forEach(x => x.g.classList.toggle("on", x.o.anchor)); }
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape") hidePop(); });
 
 /* ---------------------------------------------------------------- examples */
 $("#ex1").onclick = () => {

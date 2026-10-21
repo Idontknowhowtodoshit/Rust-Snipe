@@ -124,7 +124,7 @@ def custom_ids():
         return set()
 
 
-def fetch_map_id(map_id, refresh=False, quiet=False, skip_custom=False):
+def fetch_map_id(map_id, refresh=False, quiet=False, skip_custom=False, log=print):
     """Download one map by its rustmaps id (cached: a map id never changes content).
     skip_custom: don't save custom maps (seed 1 / edited), just remember their id."""
     out = MAPS / map_id[:8]
@@ -137,11 +137,11 @@ def fetch_map_id(map_id, refresh=False, quiet=False, skip_custom=False):
         html = http_get(f"https://rustmaps.com/map/{map_id}").decode("utf8")
         i = html.find("window.pageData")
         if i < 0:
-            print(f"  ! map {map_id}: not available ({r.get('meta')})")
+            log(f"  ! map {map_id}: not available ({r.get('meta')})")
             return None
         d = json.JSONDecoder().raw_decode(html[html.index("{", i):])[0]["data"]
     if not d or not d.get("monuments"):
-        print(f"  ! map {map_id}: no monument data yet (state: {(d or {}).get('state')})")
+        log(f"  ! map {map_id[:8]}: rustmaps hasn't rendered it yet ({(d or {}).get('state')}), retried next sync")
         return None
     if skip_custom and not is_classic(d):
         CUSTOM_FILE.write_text(json.dumps(sorted(custom_ids() | {map_id})))
@@ -208,6 +208,7 @@ def update_servers(terms, with_players=True, log=print):
     gone = [known.pop(k)["name"] for k in [k for k, v in known.items() if now - v["seen"] > STALE_DAYS * 86400]]
     MAPS.mkdir(parents=True, exist_ok=True)
     SERVERS.write_text(json.dumps(known, indent=1))
+    update_geo(log=log)                                  # regions of any new servers
     for w in wiped:
         log(f"wiped: {w['name']}  ({w['old'][:8]} -> {w['new'][:8]})")
     for n in added:
@@ -224,7 +225,7 @@ def update_servers(terms, with_players=True, log=print):
         names = [v["name"] for v in known.values() if v["mapId"] == i]
         log(f"[{n}/{len(new)}] {names[0][:60]}{f' (+{len(names) - 1})' if len(names) > 1 else ''}")
         try:
-            got = fetch_map_id(i, quiet=True, skip_custom=True)
+            got = fetch_map_id(i, quiet=True, skip_custom=True, log=log)
             if not got:
                 failed.append(i)
             elif got == "custom":
@@ -293,10 +294,67 @@ def last_sync():
 def servers_by_map():
     if not SERVERS.exists():
         return {}
-    out = {}
+    geo, out = load_geo(), {}
     for s in json.loads(SERVERS.read_text()).values():
-        out.setdefault(s["mapId"], []).append(s)
+        out.setdefault(s["mapId"], []).append({**s, "region": server_region(s, geo)})
     return out
+
+
+# ---------------------------------------------------------------- server regions
+GEO_FILE = MAPS / "geo.json"          # server ip -> country / continent (looked up once per ip)
+REGIONS = ["EU", "NA", "SA", "OCE", "Asia", "Africa"]
+_CONTINENT = {"EU": "EU", "NA": "NA", "SA": "SA", "OC": "OCE", "AS": "Asia", "AF": "Africa"}
+# fallback when an ip couldn't be looked up: what the server name says
+_NAME_REGION = [
+    ("OCE", r"\b(AU|AUS|OCE|OCEANIA|AUSTRALIA|NZ)\b"),
+    ("Asia", r"\b(SEA|ASIA|SG|JP|KR|HK|AE|CN)\b|[一-鿿]"),
+    ("SA", r"\b(SA|BR|BRAZIL|LATAM)\b"),
+    ("NA", r"\b(US|USA|NA|CA|CAN|CANADA)\b"),
+    ("EU", r"\b(EU|EUROPE|UK)\b"),
+]
+
+
+def load_geo():
+    try:
+        return json.loads(GEO_FILE.read_text())
+    except Exception:
+        return {}
+
+
+def server_region(s, geo=None):
+    """EU / NA / SA / OCE / Asia / Africa: the region the server's name advertises (what players
+    pick by; a few are hosted elsewhere), else where its ip is, else '?'."""
+    name = s.get("name", "").upper()
+    by_name = next((r for r, pat in _NAME_REGION if re.search(pat, name)), None)
+    if by_name:
+        return by_name
+    g = (load_geo() if geo is None else geo).get(s.get("ip"))
+    return _CONTINENT.get(g.get("cont"), "?") if g else "?"
+
+
+def update_geo(log=print):
+    """Look up the location of server ips not seen before (ip-api.com batch, free, no key;
+    only the game servers' public ips are sent). Cached in maps/geo.json."""
+    servers = json.loads(SERVERS.read_text()) if SERVERS.exists() else {}
+    geo = load_geo()
+    todo = sorted({s["ip"] for s in servers.values() if s.get("ip")} - set(geo))
+    for i in range(0, len(todo), 100):
+        body = json.dumps([{"query": ip, "fields": "status,countryCode,continentCode,query"} for ip in todo[i:i + 100]])
+        try:
+            rows = json.loads(http_get("http://ip-api.com/batch", {"Content-Type": "application/json"},
+                                       body.encode(), "POST"))
+        except Exception as e:
+            log(f"server location lookup failed ({e}); using server names for regions")
+            break
+        for r in rows:
+            if r.get("status") == "success":
+                geo[r["query"]] = {"cc": r.get("countryCode"), "cont": r.get("continentCode")}
+        if i + 100 < len(todo):
+            time.sleep(4.5)                              # free tier: 15 batch requests a minute
+    if todo:
+        GEO_FILE.write_text(json.dumps(geo, indent=0))
+        log(f"server locations: {len(todo)} new ips looked up")
+    return len(todo)
 
 
 def load_maps(ids=None):
@@ -655,12 +713,18 @@ def is_classic(d):
     return d.get("type") == "Procedural" and not d.get("hasCustomMonuments") and d.get("seed", 0) > 1
 
 
-def search(clues, map_ids=None, org=None, top=50, pool=None, classic_only=True):
+def search(clues, map_ids=None, org=None, top=50, pool=None, classic_only=True, regions=None):
     """Rank every clues['at'] monument in every downloaded map. Returns a list of result dicts.
-    pool: optional {map_id8: MapImage} of preloaded maps (the UI keeps one in memory)."""
+    pool: optional {map_id8: MapImage} of preloaded maps (the UI keeps one in memory).
+    org / regions: only maps run by servers whose name contains org / that are in one of regions."""
     by_map = {k[:8]: v for k, v in servers_by_map().items()}
-    if map_ids is None and org:
-        map_ids = [k for k, v in by_map.items() if any(org.lower() in s["name"].lower() for s in v)]
+    if org or regions:
+        def wanted(s):
+            return (not org or org.lower() in s["name"].lower()) and (not regions or s["region"] in regions)
+        by_map = {k: [s for s in v if wanted(s)] for k, v in by_map.items()}
+        by_map = {k: v for k, v in by_map.items() if v}
+        if map_ids is None:
+            map_ids = list(by_map)
     if pool is None:
         maps = (MapImage(d, path) for d, path in load_maps(map_ids))
     elif map_ids is None:
@@ -688,8 +752,8 @@ def search(clues, map_ids=None, org=None, top=50, pool=None, classic_only=True):
     return results[:top] if top else results
 
 
-def find(clues, map_ids=None, top=10, render=True, org=None, classic_only=True):
-    results = search(clues, map_ids, org, top=0, classic_only=classic_only)
+def find(clues, map_ids=None, top=10, render=True, org=None, classic_only=True, regions=None):
+    results = search(clues, map_ids, org, top=0, classic_only=classic_only, regions=regions)
     if not results:
         print(f"no '{clues['at']}' in any downloaded map")
         return []
@@ -698,7 +762,7 @@ def find(clues, map_ids=None, top=10, render=True, org=None, classic_only=True):
         print(f"\n#{rank}  score {r['score']:.2f}  {r['type']} at ({r['x']}, {r['y']})  grid {r['grid']}")
         print(f"     map {r['map']}  seed {r['seed']}  size {r['size']}  https://rustmaps.com/map/{r['map']}")
         for s in r["servers"]:
-            print(f"     server: {s['name']}  ({s['ip']}:{s['gamePort']}, wiped {s['lastWipeUtc'][:10]})")
+            print(f"     server: [{s['region']}] {s['name']}  ({s['ip']}:{s['gamePort']}, wiped {s['lastWipeUtc'][:10]})")
         for k, v in r["detail"].items():
             print(f"     {k}: {v}")
     if render:
@@ -795,6 +859,7 @@ def main():
     fi = sub.add_parser("find"); fi.add_argument("clues"); fi.add_argument("--maps", nargs="*")
     fi.add_argument("--top", type=int, default=10)
     fi.add_argument("--org", help="only maps currently run by servers whose name contains this")
+    fi.add_argument("--region", nargs="+", choices=REGIONS, help="only servers in these regions")
     fi.add_argument("--include-custom", action="store_true", help="also search custom (seed 1 / edited) maps")
     u = sub.add_parser("ui", help="open the clue-builder web UI")
     u.add_argument("--port", type=int, default=8765)
@@ -818,7 +883,7 @@ def main():
         if a.list:
             for mid, ss in servers_by_map().items():
                 for s in ss:
-                    print(f"{mid[:8]}  {s['lastWipeUtc'][:10]}  {s['name']}")
+                    print(f"{mid[:8]}  {s['lastWipeUtc'][:10]}  {s['region']:6} {s['name']}")
         else:
             update_servers(a.terms or DEFAULT_ORGS, with_players=not a.include_empty)
     elif a.cmd == "sync":
@@ -832,7 +897,8 @@ def main():
     elif a.cmd == "bearing":
         print(round(screen_bearing(a.heading, a.x, a.width, a.height, a.fov), 1))
     elif a.cmd == "find":
-        find(json.loads(Path(a.clues).read_text()), a.maps, a.top, org=a.org, classic_only=not a.include_custom)
+        find(json.loads(Path(a.clues).read_text()), a.maps, a.top, org=a.org, classic_only=not a.include_custom,
+             regions=a.region)
     elif a.cmd == "biome":
         biome_preview(a.map)
     elif a.cmd == "ui":

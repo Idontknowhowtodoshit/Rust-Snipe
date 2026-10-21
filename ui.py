@@ -98,6 +98,7 @@ def load_pool():
         "types": tlist,
         "biomes": [b for b in R.BIOMES if b != "water"],
         "tunnel_types": list(R.TUNNEL_OFFSET),
+        "regions": dict(Counter(sv["region"] for k, v in servers.items() if k[:8] in classic for sv in v)),
     })
 
 
@@ -164,7 +165,7 @@ def do_search(body):
     clues = body["clues"]
     with LOCK:  # biome grids are built lazily on first use; keep that single-threaded
         res = R.search(clues, org=body.get("org") or None, top=0, pool=POOL,
-                       classic_only=not body.get("include_custom"))
+                       classic_only=not body.get("include_custom"), regions=body.get("regions") or None)
     total = len(res)
     view = body.get("view")
     keep = 400 if view else int(body.get("top", 60))
@@ -203,6 +204,31 @@ def do_render(body):
     buf = io.BytesIO()
     img.save(buf, "PNG")
     return buf.getvalue()
+
+
+def map_objects(map8):
+    """Everything rustmaps lists on one map (monuments, rocks, power lines, ...) for the live map."""
+    mi = POOL[map8]
+    cats = {t["name"]: t["cat"] for t in META.get("types", [])}
+    out = []
+    for m in mi.d["monuments"]:
+        b = base_type(m["type"])
+        cat = cats.get(b) or category(b, m.get("sizeCategory"))
+        x, y = m["coordinates"]["x"], m["coordinates"]["y"]
+        out.append({"t": m["type"], "b": b, "x": x, "y": y, "cat": cat, "g": R.grid_ref(x, y, mi.size),
+                    "tier": 0 if cat == "Large monuments" else 1 if cat == "Small monuments" else 2})
+    return {"size": mi.size, "objects": out}
+
+
+def map_tile(map8, z, x, y):
+    """rustmaps' sharper map tiles (256 px; at zoom z a tile is 256/2^z metres, tile (x, y) starts at
+    world x*m, y -y*m). Fetched on demand and cached in the map's folder, so they go with the map."""
+    mi = POOL[map8]
+    base = mi.d.get("tileBaseUrl")
+    if not base or not -2 <= z <= 2 or max(abs(x), abs(y)) > 64:
+        return None
+    return cached(mi.path / "tiles" / str(z) / f"{x}_{y}.webp",
+                  lambda: R.http_get(base.format(z=z, x=x, y=y)))
 
 
 def cached(path, make):
@@ -289,7 +315,14 @@ def thumb(base):
 
 def prefetch_assets(log=print):
     """Download every picture the UI shows (photo + icon per type) and build the top-down
-    thumbnails, so the picker never waits on the network. Already-present files are skipped."""
+    thumbnails, so the picker never waits on the network. Already-present files are skipped.
+    Also locates servers whose region isn't known yet (servers.json from before regions existed)."""
+    try:
+        if R.update_geo(log=log):
+            with LOCK:
+                load_pool()
+    except Exception as e:
+        log(f"server locations: {e}")
     done = failed = 0
     for t in list(META.get("types", [])):
         jobs = []
@@ -330,6 +363,16 @@ class Handler(BaseHTTPRequestHandler):
                 self.send(200, (HERE / "ui.html").read_bytes(), "text/html; charset=utf-8")
             elif url.path == "/api/meta":
                 self.send(200, json.dumps(META).encode(), "application/json")
+            elif url.path == "/api/objects" and q.get("map8") in POOL:
+                self.send(200, json.dumps(map_objects(q["map8"])).encode(), "application/json")
+            elif url.path == "/api/mapimg" and q.get("map8") in POOL:
+                self.send(200, (POOL[q["map8"]].path / "map.png").read_bytes(), "image/png", cache=True)
+            elif url.path == "/api/tile" and q.get("map8") in POOL:
+                try:
+                    b = map_tile(q["map8"], int(q["z"]), int(q["x"]), int(q["y"]))
+                except Exception:
+                    b = None                                     # off the map edge (404) or offline
+                self.send(200, b, "image/webp", cache=True) if b else self.send(404, b"", "text/plain")
             elif url.path == "/api/sync":
                 self.send(200, json.dumps(sync_status()).encode(), "application/json")
             elif url.path == "/api/photos":
@@ -373,7 +416,7 @@ def serve(port=8765, open_browser=True):
     threading.Thread(target=sync_loop, daemon=True).start()
     httpd = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     url = f"http://127.0.0.1:{port}/"
-    print(f"rustloc UI on {url}  (Ctrl+C to stop)")
+    print(f"Rust-Snipe UI on {url}  (Ctrl+C to stop)")
     if open_browser:
         threading.Timer(0.5, webbrowser.open, [url]).start()
     httpd.serve_forever()

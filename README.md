@@ -21,7 +21,11 @@ It runs locally in your browser. No account or API key is needed.
 * **Biomes**: "must be snow", "must NOT be desert", for the monument and for each nearby thing.
 * **"Not nearby" clues**, optionally in a direction ("no Military Tunnels to the east").
 * **Screenshot bearings**: enter compass readings and each result shows where you stood.
-* **Zoomable map preview** with lines to every matched landmark.
+* **Live map**: drag and zoom smoothly; sharp map tiles load as you zoom in. Every monument,
+  rock, cave and power line is labelled and clickable: see its picture, its distance and
+  direction from the match, and add it as a clue in one click.
+* **Region filter**: EU, NA, SA, OCE (Australia / NZ), Asia. Taken from the server name, or
+  from where the server's IP is if the name doesn't say.
 * **Wipe tracking**: re-checks servers every 6 hours, downloads new maps after wipes and
   deletes old ones.
 * Only standard procedural maps are kept. Custom maps are skipped.
@@ -67,7 +71,10 @@ python -m venv .venv
 5. *(optional)* **Compass bearings** from a screenshot: the heading at the top of the screen,
    the bearing to the monument and to the first nearby thing. Each result then shows your
    estimated position.
-6. **Search**. Click a result to see it on the map. Scroll to zoom and drag to move. Use
+6. *(optional)* **Servers**: click region chips to search only those regions (none = all), or
+   type part of a server name.
+7. **Search**. Click a result to see it on the map. Scroll to zoom and drag to move. Click any
+   label on the map for its picture and to add it as a *nearby* or *not nearby* clue. Use
    *copy connect* to join the server.
 
 Distances are in grid squares (~146 m), measured to the edge of a monument. Something a little
@@ -99,6 +106,7 @@ python rustloc.py fetch https://rustmaps.com/map/<id>      # one map by URL / id
 python rustloc.py fetch 4250_548571299                     # one map by SIZE_SEED (needs API key)
 python rustloc.py find clues/supermarket_excavator.json    # search with a clue file, draws result.png
 python rustloc.py find clues/x.json --org rustoria         # only maps Rustoria servers run now
+python rustloc.py find clues/x.json --region EU NA         # only servers in these regions
 python rustloc.py bearing --heading 332 --x 1550 --fov 75  # screen x position -> compass bearing
 python rustloc.py biome <map id>                           # biome classification preview
 ```
@@ -148,6 +156,9 @@ Rust's FOV setting is vertical (default 75). If you don't know it, use a wider t
   * Biome coverage, rotation, and absent things.
 * With two compass bearings, the viewer's position is triangulated. Positions in the sea or too
   far away are ranked down.
+* **Regions**: a region in the server name (`EU`, `US`, `AU`, `SEA`, `BR`, …) wins. Otherwise
+  the server's public IP is located once with the free [ip-api.com](https://ip-api.com) batch
+  lookup and cached in `maps/geo.json`. Only game-server IPs are sent.
 
 ## Credits and disclaimer
 
